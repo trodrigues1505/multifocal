@@ -594,24 +594,48 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-wi
 
   /* Dashboard slides from bottom on mobile too */
   .dashboard-overlay { align-items: flex-end; }
-  .dashboard-panel { width: 100%; height: 90vh; border-radius: var(--rxl) var(--rxl) 0 0; padding: 20px 16px; }
+  .dashboard-panel {
+    width: 100%;
+    height: 90dvh;
+    height: 90vh; /* fallback */
+    border-radius: var(--rxl) var(--rxl) 0 0;
+    padding: 20px 16px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
 
   /* Modal full-screen on small phones */
-  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+    /* Full viewport, no overflow hidden */
+  }
   .modal {
-    width: 100%; max-width: 100%;
+    width: 100%;
+    max-width: 100%;
     border-radius: var(--rxl) var(--rxl) 0 0;
-    max-height: 92vh;
-    display: flex; flex-direction: column;
+    /* Use dvh so iOS Safari toolbar is accounted for */
+    max-height: 88dvh;
+    max-height: 88vh; /* fallback */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    flex-shrink: 0;
   }
   .modal-body {
-    flex: 1;
+    flex: 1 1 auto;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* Prevent body scroll while modal is open */
+    overscroll-behavior: contain;
   }
   .modal-footer {
     flex-shrink: 0;
+    background: var(--surface);
+    /* Safe area for home bar on iPhone */
     padding-bottom: max(18px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
   }
   .mf-row { grid-template-columns: 1fr; }
   .mf input, .mf select, .mf textarea { font-size: 16px; } /* prevent iOS zoom */

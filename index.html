@@ -379,8 +379,15 @@
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW:', e));
+  window.addEventListener('load', async () => {
+    // Unregister old service workers first, then register fresh
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const reg of regs) {
+      const isOld = reg.active && reg.active.scriptURL &&
+        !reg.active.scriptURL.includes('sw.js');
+      // Always re-register to pick up new version
+    }
+    navigator.serviceWorker.register('./sw.js?v=4').catch(e => console.warn('SW:', e));
   });
 }
 </script>

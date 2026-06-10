@@ -1,4 +1,4 @@
-const CACHE = "multifocal-v3";
+const CACHE = "multifocal-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,38 +9,48 @@ const ASSETS = [
   "./logo.png",
   "./icon-192.png",
   "./icon-512.png",
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap",
-  "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
 ];
 
 self.addEventListener("install", e => {
+  self.skipWaiting(); // activate immediately, don't wait
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(ASSETS))
   );
 });
 
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+      Promise.all(keys.filter(k => k !== CACHE).map(k => {
+        console.log("[SW] Deleting old cache:", k);
+        return caches.delete(k);
+      }))
+    ).then(() => self.clients.claim()) // take control of all open tabs
   );
 });
 
 self.addEventListener("fetch", e => {
-  // Network first for Firebase, cache first for static assets
   const url = e.request.url;
-  if (url.includes("firestore.googleapis.com") || url.includes("firebase") || url.includes("gstatic.com/firebasejs")) {
+  // Always network-first for Firebase and CDN resources
+  if (url.includes("firestore.googleapis.com") ||
+      url.includes("firebase") ||
+      url.includes("gstatic.com/firebasejs") ||
+      url.includes("googleapis.com") ||
+      url.includes("jsdelivr.net") ||
+      url.includes("fonts.")) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
+  // Network-first for app files too (always fresh)
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
-      if (res.ok) {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-      }
-      return res;
-    }))
+    fetch(e.request)
+      .then(res => {
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
