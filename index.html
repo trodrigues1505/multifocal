@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Foco — Gestão de Tarefas</title>
+<title>Multifocal — Gerenciador de Tarefas</title>
+<meta name="description" content="Gerencie suas tarefas com foco e clareza. Sincronizado em qualquer dispositivo.">
+<meta name="theme-color" content="#3B82F6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Multifocal">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -12,20 +21,47 @@
 </head>
 <body>
 
+<!-- LGPD BANNER -->
+<div id="lgpd-banner" class="lgpd-banner hidden">
+  <div class="lgpd-content">
+    <i class="ti ti-shield-lock" style="font-size:20px;color:var(--blue);flex-shrink:0"></i>
+    <div class="lgpd-text">
+      <strong>Privacidade e dados</strong>
+      <span>Usamos sua conta Google apenas para autenticação e armazenar suas tarefas de forma segura no Firebase. Não compartilhamos seus dados com terceiros. Em conformidade com a <strong>LGPD (Lei 13.709/2018)</strong>. <a href="#" onclick="App.openPrivacy();return false">Política de privacidade</a></span>
+    </div>
+    <button class="lgpd-accept" onclick="App.acceptLgpd()">Entendi e aceito</button>
+    <button class="lgpd-close" onclick="App.acceptLgpd()" title="Fechar"><i class="ti ti-x"></i></button>
+  </div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div class="modal-overlay hidden" id="privacy-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h2>Política de Privacidade</h2>
+      <button class="icon-btn" onclick="document.getElementById('privacy-overlay').classList.add('hidden')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" style="gap:14px;font-size:13px;line-height:1.7;color:var(--text2)">
+      <p><strong style="color:var(--text)">Dados coletados</strong><br>Nome, e-mail e foto de perfil da sua conta Google (usados apenas para identificação). Suas tarefas, categorias e configurações criadas no app.</p>
+      <p><strong style="color:var(--text)">Como usamos</strong><br>Seus dados são armazenados no Firebase Firestore (Google Cloud) vinculados à sua conta. Nunca são compartilhados com terceiros nem usados para publicidade.</p>
+      <p><strong style="color:var(--text)">Seus direitos (LGPD)</strong><br>Você pode exportar todos os seus dados pelo botão "Exportar" na sidebar. Pode excluir sua conta a qualquer momento, o que remove todos os dados associados.</p>
+      <p><strong style="color:var(--text)">Cookies</strong><br>Usamos apenas cookies técnicos do Firebase para manter sua sessão ativa. Nenhum cookie de rastreamento ou publicidade.</p>
+      <p><strong style="color:var(--text)">Contato</strong><br>Para exercer seus direitos ou dúvidas sobre privacidade, entre em contato pelo repositório do projeto.</p>
+      <p style="font-size:11px;color:var(--text3)">Última atualização: junho de 2025 · Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018)</p>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN SCREEN -->
 <div id="screen-login" class="screen-login hidden">
   <div class="login-card">
-    <div class="login-logo">
-      <span class="logo-dot"></span>
-      <span class="logo-name">Foco</span>
-    </div>
-    <h1>Organize o que importa.</h1>
-    <p>Suas tarefas, em qualquer lugar, sempre sincronizadas.</p>
+    <img src="logo.png" alt="Multifocal" class="login-logo-img">
+    <p class="login-tagline">Organize o que importa.<br>Foco em cada tarefa.</p>
     <button class="btn-google" onclick="App.signIn()">
       <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.3C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.6 5C9.7 39.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.6 5.7l6.2 5.3C40.5 35.7 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
       Entrar com Google
     </button>
-    <p class="login-note">Seus dados ficam salvos na sua conta Google.</p>
+    <p class="login-note">Ao entrar, você concorda com nossa <a href="#" onclick="App.openPrivacy();return false">política de privacidade</a> e com a LGPD.</p>
   </div>
 </div>
 
@@ -35,11 +71,18 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sb-brand">
-      <span class="logo-dot"></span>
-      <span class="logo-name">Foco</span>
-      <button class="icon-btn ml-auto" onclick="App.openDashboard()" title="Dashboard" id="btn-dashboard">
-        <i class="ti ti-chart-bar"></i>
-      </button>
+      <img src="logo.png" alt="Multifocal" class="sb-logo">
+      <div class="sb-brand-actions">
+        <div class="sync-indicator" id="sync-indicator" title="Sincronizado">
+          <i class="ti ti-cloud-check"></i>
+        </div>
+        <button class="icon-btn" onclick="App.openDashboard()" title="Dashboard" id="btn-dashboard">
+          <i class="ti ti-chart-bar"></i>
+        </button>
+        <button class="icon-btn" onclick="App.openShortcuts()" title="Atalhos (?)">
+          <i class="ti ti-keyboard"></i>
+        </button>
+      </div>
     </div>
 
     <div class="user-row" id="user-row"></div>
@@ -57,13 +100,13 @@
 
     <nav class="sb-nav">
       <div class="nav-section-label">Visualizar</div>
-      <div class="nav-item active" data-v="all" onclick="App.setView(this,'all')"><i class="ti ti-layout-list"></i>Todas<span class="nav-badge" id="b-all">0</span></div>
-      <div class="nav-item" data-v="today" onclick="App.setView(this,'today')"><i class="ti ti-sun"></i>Hoje<span class="nav-badge warn" id="b-today">0</span></div>
-      <div class="nav-item" data-v="week" onclick="App.setView(this,'week')"><i class="ti ti-calendar-week"></i>Esta semana<span class="nav-badge" id="b-week">0</span></div>
-      <div class="nav-item" data-v="doing" onclick="App.setView(this,'doing')"><i class="ti ti-player-play"></i>Em andamento<span class="nav-badge accent" id="b-doing">0</span></div>
-      <div class="nav-item" data-v="urgent" onclick="App.setView(this,'urgent')"><i class="ti ti-flame"></i>Urgentes<span class="nav-badge danger" id="b-urgent">0</span></div>
-      <div class="nav-item" data-v="blocked" onclick="App.setView(this,'blocked')"><i class="ti ti-ban"></i>Bloqueadas<span class="nav-badge" id="b-blocked">0</span></div>
-      <div class="nav-item" data-v="overdue" onclick="App.setView(this,'overdue')"><i class="ti ti-alert-circle"></i>Atrasadas<span class="nav-badge danger" id="b-overdue">0</span></div>
+      <div class="nav-item active" data-v="all"       onclick="App.setView(this,'all')"><i class="ti ti-layout-list"></i>Todas<span class="nav-badge" id="b-all">0</span></div>
+      <div class="nav-item" data-v="today"    onclick="App.setView(this,'today')"><i class="ti ti-sun"></i>Hoje<span class="nav-badge warn" id="b-today">0</span></div>
+      <div class="nav-item" data-v="week"     onclick="App.setView(this,'week')"><i class="ti ti-calendar-week"></i>Esta semana<span class="nav-badge" id="b-week">0</span></div>
+      <div class="nav-item" data-v="doing"    onclick="App.setView(this,'doing')"><i class="ti ti-player-play"></i>Em andamento<span class="nav-badge accent" id="b-doing">0</span></div>
+      <div class="nav-item" data-v="urgent"   onclick="App.setView(this,'urgent')"><i class="ti ti-flame"></i>Urgentes<span class="nav-badge danger" id="b-urgent">0</span></div>
+      <div class="nav-item" data-v="blocked"  onclick="App.setView(this,'blocked')"><i class="ti ti-ban"></i>Bloqueadas<span class="nav-badge" id="b-blocked">0</span></div>
+      <div class="nav-item" data-v="overdue"  onclick="App.setView(this,'overdue')"><i class="ti ti-alert-circle"></i>Atrasadas<span class="nav-badge danger" id="b-overdue">0</span></div>
       <div class="nav-item" data-v="recurring" onclick="App.setView(this,'recurring')"><i class="ti ti-refresh"></i>Recorrentes<span class="nav-badge" id="b-recurring">0</span></div>
 
       <div class="nav-section-label" style="margin-top:8px">Categorias</div>
@@ -72,9 +115,11 @@
     </nav>
 
     <div class="sb-footer">
-      <button class="footer-btn" onclick="App.exportJSON()" title="Exportar"><i class="ti ti-download"></i>Exportar</button>
-      <button class="footer-btn" onclick="App.triggerImport()" title="Importar"><i class="ti ti-upload"></i>Importar</button>
-      <button class="footer-btn danger" onclick="App.signOut()" title="Sair"><i class="ti ti-logout"></i>Sair</button>
+      <button class="footer-btn" onclick="App.exportJSON()" title="Exportar dados"><i class="ti ti-download"></i>Exportar</button>
+      <button class="footer-btn" onclick="App.triggerImport()" title="Importar dados"><i class="ti ti-upload"></i>Importar</button>
+      <button class="footer-btn" id="btn-install" onclick="App.installPWA()" title="Instalar app" style="display:none"><i class="ti ti-device-mobile"></i>Instalar</button>
+      <button class="footer-btn danger" onclick="App.confirmClearAll()" title="Limpar tarefas"><i class="ti ti-trash"></i>Limpar</button>
+      <button class="footer-btn" onclick="App.signOut()" title="Sair da conta"><i class="ti ti-logout"></i>Sair</button>
     </div>
   </aside>
 
@@ -99,12 +144,12 @@
     </div>
 
     <div class="filters-bar">
-      <button class="chip active" data-s="all" onclick="App.setSt(this,'all')">Todas</button>
-      <button class="chip" data-s="todo" onclick="App.setSt(this,'todo')">A fazer</button>
-      <button class="chip" data-s="doing" onclick="App.setSt(this,'doing')">Andamento</button>
-      <button class="chip" data-s="review" onclick="App.setSt(this,'review')">Revisão</button>
+      <button class="chip active" data-s="all"     onclick="App.setSt(this,'all')">Todas</button>
+      <button class="chip" data-s="todo"    onclick="App.setSt(this,'todo')">A fazer</button>
+      <button class="chip" data-s="doing"   onclick="App.setSt(this,'doing')">Andamento</button>
+      <button class="chip" data-s="review"  onclick="App.setSt(this,'review')">Revisão</button>
       <button class="chip" data-s="blocked" onclick="App.setSt(this,'blocked')">Bloqueada</button>
-      <button class="chip" data-s="done" onclick="App.setSt(this,'done')">Concluída</button>
+      <button class="chip" data-s="done"    onclick="App.setSt(this,'done')">Concluída</button>
     </div>
 
     <div class="task-list" id="task-list"></div>
@@ -113,7 +158,7 @@
   <!-- DETAIL PANEL -->
   <aside class="detail-panel hidden" id="detail-panel"></aside>
 
-  <!-- DASHBOARD PANEL -->
+  <!-- DASHBOARD -->
   <div class="dashboard-overlay hidden" id="dashboard-overlay" onclick="App.closeDashboard(event)">
     <div class="dashboard-panel" id="dashboard-panel"></div>
   </div>
@@ -173,9 +218,100 @@
   </div>
 </div>
 
+<!-- CONFIRM CLEAR ALL MODAL -->
+<div class="modal-overlay hidden" id="clear-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h2 style="color:var(--red)"><i class="ti ti-alert-triangle" style="margin-right:6px"></i>Limpar todas as tarefas</h2>
+      <button class="icon-btn" onclick="document.getElementById('clear-overlay').classList.add('hidden')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text2);line-height:1.6">Esta ação vai excluir <strong style="color:var(--text)">todas as tarefas permanentemente</strong>. As categorias serão mantidas. Esta ação <strong style="color:var(--red)">não pode ser desfeita</strong>.</p>
+      <p style="font-size:13px;color:var(--text3);margin-top:4px">Dica: use "Exportar" antes para fazer um backup.</p>
+      <div class="mf" style="margin-top:4px">
+        <label>Digite <strong>CONFIRMAR</strong> para prosseguir</label>
+        <input type="text" id="clear-confirm-input" placeholder="CONFIRMAR" oninput="App.checkClearConfirm()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="document.getElementById('clear-overlay').classList.add('hidden')">Cancelar</button>
+      <button class="btn-danger" id="btn-clear-confirm" onclick="App.clearAllTasks()" disabled>Excluir tudo</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHORTCUTS MODAL -->
+<div class="modal-overlay hidden" id="shortcuts-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h2>Atalhos de teclado</h2>
+      <button class="icon-btn" onclick="document.getElementById('shortcuts-overlay').classList.add('hidden')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="shortcuts-list">
+        <div class="shortcut-row"><kbd>N</kbd><span>Nova tarefa</span></div>
+        <div class="shortcut-row"><kbd>D</kbd><span>Abrir dashboard</span></div>
+        <div class="shortcut-row"><kbd>/</kbd><span>Focar na busca</span></div>
+        <div class="shortcut-row"><kbd>Esc</kbd><span>Fechar modal / painel</span></div>
+        <div class="shortcut-row"><kbd>?</kbd><span>Mostrar atalhos</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL MODAL -->
+<div class="modal-overlay hidden" id="install-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2>Instalar Multifocal</h2>
+      <button class="icon-btn" onclick="document.getElementById('install-overlay').classList.add('hidden')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" style="gap:16px">
+      <div class="install-platform" id="install-native" style="display:none">
+        <p style="font-size:13px;color:var(--text2)">Instale o Multifocal no seu dispositivo para acessar rapidamente, mesmo offline.</p>
+        <button class="btn-save" style="width:100%;justify-content:center;display:flex;gap:8px;margin-top:4px" onclick="App.triggerInstall()">
+          <i class="ti ti-download"></i> Instalar agora
+        </button>
+      </div>
+      <div class="install-instructions">
+        <div class="install-os">
+          <div class="install-os-title"><i class="ti ti-brand-android"></i> Android (Chrome)</div>
+          <ol class="install-steps">
+            <li>Toque no menu <strong>⋮</strong> (três pontos) no canto superior direito</li>
+            <li>Toque em <strong>"Adicionar à tela inicial"</strong></li>
+            <li>Confirme tocando em <strong>"Adicionar"</strong></li>
+          </ol>
+        </div>
+        <div class="install-os">
+          <div class="install-os-title"><i class="ti ti-brand-apple"></i> iOS (Safari)</div>
+          <ol class="install-steps">
+            <li>Toque no ícone de <strong>compartilhar</strong> <i class="ti ti-share"></i> na barra inferior</li>
+            <li>Role e toque em <strong>"Adicionar à tela de início"</strong></li>
+            <li>Toque em <strong>"Adicionar"</strong> no canto superior direito</li>
+          </ol>
+        </div>
+        <div class="install-os">
+          <div class="install-os-title"><i class="ti ti-device-desktop"></i> Desktop (Chrome / Edge)</div>
+          <ol class="install-steps">
+            <li>Clique no ícone <strong>⊕</strong> na barra de endereço (lado direito)</li>
+            <li>Clique em <strong>"Instalar"</strong></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="import-input" accept=".json" style="display:none" onchange="App.importJSON(event)">
 <div class="toast" id="toast"></div>
 
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW:', e));
+  });
+}
+</script>
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="app.js"></script>
 </body>
