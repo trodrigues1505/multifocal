@@ -1,4 +1,4 @@
-const CACHE = "multifocal-v4";
+const CACHE = "multifocal-v5";
 const ASSETS = [
   "./",
   "./index.html",
