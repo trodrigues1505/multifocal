@@ -343,7 +343,17 @@ function renderDetail(id) {
 
   $("detail-panel").innerHTML = `
     <div class="dp-head">
-      <div class="dp-title">${esc(t.title)}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+        <input
+          type="text"
+          class="dp-title-input"
+          value="${esc(t.title)}"
+          onchange="App.upd(${id},'title',this.value)"
+          onblur="App.upd(${id},'title',this.value)"
+          placeholder="Título da tarefa"
+        >
+        <span style="font-size:10px;color:var(--text3)"><i class="ti ti-device-floppy" style="font-size:10px"></i> Salvo automaticamente ao alterar</span>
+      </div>
       <button class="icon-btn" onclick="App.selTask(${id})"><i class="ti ti-x"></i></button>
     </div>
     <div class="dp-body">
@@ -379,7 +389,9 @@ function renderDetail(id) {
       <div class="dp-field"><label>Tempo estimado (h)</label>
         <input type="number" value="${t.timeEst||0}" min="0" step="0.5" onchange="App.upd(${id},'timeEst',parseFloat(this.value)||0)">
       </div>
-      ${t.desc?`<div class="dp-field"><label>Descrição</label><p style="font-size:12px;color:var(--text2);line-height:1.5">${esc(t.desc)}</p></div>`:""}
+      <div class="dp-field"><label>Descrição</label>
+        <textarea placeholder="Descrição..." onchange="App.upd(${id},'desc',this.value)" onblur="App.upd(${id},'desc',this.value)">${esc(t.desc||"")}</textarea>
+      </div>
       <div class="dp-field"><label>Notas</label>
         <textarea placeholder="Anotações livres..." onchange="App.updNote(${id},this.value)">${esc(t.note||"")}</textarea>
       </div>

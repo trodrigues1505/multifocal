@@ -348,6 +348,16 @@ button { cursor: pointer; }
   position: sticky; top: 0; background: var(--surface); z-index: 5;
 }
 .dp-title { font-size: 14px; font-weight: 600; flex: 1; line-height: 1.4; }
+.dp-title-input {
+  font-size: 14px; font-weight: 600; line-height: 1.4;
+  width: 100%; background: transparent;
+  border: 1px solid transparent; border-radius: var(--r);
+  padding: 4px 6px; color: var(--text);
+  transition: border-color .15s, background .15s;
+}
+.dp-title-input:hover { background: var(--bg2); border-color: var(--border2); }
+.dp-title-input:focus { background: var(--bg2); border-color: var(--blue); outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
 .dp-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
 .dp-section-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
 .dp-field { display: flex; flex-direction: column; }
