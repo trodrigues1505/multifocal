@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foco — Gestão de Tarefas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="screen-login hidden">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-dot"></span>
+      <span class="logo-name">Foco</span>
+    </div>
+    <h1>Organize o que importa.</h1>
+    <p>Suas tarefas, em qualquer lugar, sempre sincronizadas.</p>
+    <button class="btn-google" onclick="App.signIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.3C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.6 5C9.7 39.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.6 5.7l6.2 5.3C40.5 35.7 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+      Entrar com Google
+    </button>
+    <p class="login-note">Seus dados ficam salvos na sua conta Google.</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="screen-app" class="app hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <span class="logo-dot"></span>
+      <span class="logo-name">Foco</span>
+      <button class="icon-btn ml-auto" onclick="App.openDashboard()" title="Dashboard" id="btn-dashboard">
+        <i class="ti ti-chart-bar"></i>
+      </button>
+    </div>
+
+    <div class="user-row" id="user-row"></div>
+
+    <div class="sb-stats">
+      <div class="stat-pill"><span id="stat-total">0</span><span>total</span></div>
+      <div class="stat-pill accent"><span id="stat-doing">0</span><span>andamento</span></div>
+      <div class="stat-pill danger"><span id="stat-overdue">0</span><span>atrasadas</span></div>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-row"><span id="prog-label">0% concluído</span></div>
+      <div class="prog-track"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="nav-section-label">Visualizar</div>
+      <div class="nav-item active" data-v="all" onclick="App.setView(this,'all')"><i class="ti ti-layout-list"></i>Todas<span class="nav-badge" id="b-all">0</span></div>
+      <div class="nav-item" data-v="today" onclick="App.setView(this,'today')"><i class="ti ti-sun"></i>Hoje<span class="nav-badge warn" id="b-today">0</span></div>
+      <div class="nav-item" data-v="week" onclick="App.setView(this,'week')"><i class="ti ti-calendar-week"></i>Esta semana<span class="nav-badge" id="b-week">0</span></div>
+      <div class="nav-item" data-v="doing" onclick="App.setView(this,'doing')"><i class="ti ti-player-play"></i>Em andamento<span class="nav-badge accent" id="b-doing">0</span></div>
+      <div class="nav-item" data-v="urgent" onclick="App.setView(this,'urgent')"><i class="ti ti-flame"></i>Urgentes<span class="nav-badge danger" id="b-urgent">0</span></div>
+      <div class="nav-item" data-v="blocked" onclick="App.setView(this,'blocked')"><i class="ti ti-ban"></i>Bloqueadas<span class="nav-badge" id="b-blocked">0</span></div>
+      <div class="nav-item" data-v="overdue" onclick="App.setView(this,'overdue')"><i class="ti ti-alert-circle"></i>Atrasadas<span class="nav-badge danger" id="b-overdue">0</span></div>
+      <div class="nav-item" data-v="recurring" onclick="App.setView(this,'recurring')"><i class="ti ti-refresh"></i>Recorrentes<span class="nav-badge" id="b-recurring">0</span></div>
+
+      <div class="nav-section-label" style="margin-top:8px">Categorias</div>
+      <div id="cat-nav"></div>
+      <button class="nav-add-btn" onclick="App.openNewCat()"><i class="ti ti-plus"></i>Nova categoria</button>
+    </nav>
+
+    <div class="sb-footer">
+      <button class="footer-btn" onclick="App.exportJSON()" title="Exportar"><i class="ti ti-download"></i>Exportar</button>
+      <button class="footer-btn" onclick="App.triggerImport()" title="Importar"><i class="ti ti-upload"></i>Importar</button>
+      <button class="footer-btn danger" onclick="App.signOut()" title="Sair"><i class="ti ti-logout"></i>Sair</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-area">
+    <div class="topbar">
+      <div class="search-wrap">
+        <i class="ti ti-search search-icon"></i>
+        <input type="text" id="search" placeholder="Buscar tarefas, tags..." oninput="App.render()">
+      </div>
+      <div class="topbar-actions">
+        <select class="sort-sel" id="sort-sel" onchange="App.render()">
+          <option value="created">Recentes</option>
+          <option value="due">Prazo</option>
+          <option value="priority">Prioridade</option>
+          <option value="title">A–Z</option>
+        </select>
+        <button class="btn-new" onclick="App.openModal()">
+          <i class="ti ti-plus"></i>Nova tarefa
+        </button>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <button class="chip active" data-s="all" onclick="App.setSt(this,'all')">Todas</button>
+      <button class="chip" data-s="todo" onclick="App.setSt(this,'todo')">A fazer</button>
+      <button class="chip" data-s="doing" onclick="App.setSt(this,'doing')">Andamento</button>
+      <button class="chip" data-s="review" onclick="App.setSt(this,'review')">Revisão</button>
+      <button class="chip" data-s="blocked" onclick="App.setSt(this,'blocked')">Bloqueada</button>
+      <button class="chip" data-s="done" onclick="App.setSt(this,'done')">Concluída</button>
+    </div>
+
+    <div class="task-list" id="task-list"></div>
+  </main>
+
+  <!-- DETAIL PANEL -->
+  <aside class="detail-panel hidden" id="detail-panel"></aside>
+
+  <!-- DASHBOARD PANEL -->
+  <div class="dashboard-overlay hidden" id="dashboard-overlay" onclick="App.closeDashboard(event)">
+    <div class="dashboard-panel" id="dashboard-panel"></div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay hidden" id="modal-overlay" onclick="App.closeModalOut(event)">
+  <div class="modal" id="task-modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Nova tarefa</h2>
+      <button class="icon-btn" onclick="App.closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mf"><label>Título</label><input type="text" id="m-title" placeholder="O que precisa ser feito?"></div>
+      <div class="mf"><label>Descrição</label><textarea id="m-desc" placeholder="Contexto, links, detalhes..."></textarea></div>
+      <div class="mf-row">
+        <div class="mf"><label>Status</label>
+          <select id="m-status">
+            <option value="todo">A fazer</option>
+            <option value="doing">Em andamento</option>
+            <option value="review">Revisão</option>
+            <option value="blocked">Bloqueada</option>
+            <option value="done">Concluída</option>
+          </select>
+        </div>
+        <div class="mf"><label>Prioridade</label>
+          <select id="m-prio">
+            <option value="urgent">🔴 Urgente</option>
+            <option value="high">🟠 Alta</option>
+            <option value="medium" selected>🔵 Média</option>
+            <option value="low">⚪ Baixa</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf-row">
+        <div class="mf"><label>Prazo</label><input type="date" id="m-due"></div>
+        <div class="mf"><label>Categoria</label><select id="m-cat"></select></div>
+      </div>
+      <div class="mf-row">
+        <div class="mf"><label>Tempo estimado (h)</label><input type="number" id="m-est" min="0" step="0.5" placeholder="0"></div>
+        <div class="mf"><label>Recorrência</label>
+          <select id="m-recur">
+            <option value="">Sem recorrência</option>
+            <option value="daily">Diária</option>
+            <option value="weekly">Semanal</option>
+            <option value="monthly">Mensal</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf"><label>Tags <span style="opacity:.5;font-weight:400">(separe com espaço)</span></label>
+        <input type="text" id="m-tags" placeholder="#projeto #cliente #ideia"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="App.saveTask()">Salvar tarefa</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="import-input" accept=".json" style="display:none" onchange="App.importJSON(event)">
+<div class="toast" id="toast"></div>
+
+<script type="module" src="firebase-config.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
