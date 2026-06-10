@@ -607,3 +607,113 @@ window.App = {
   openPrivacy, acceptLgpd,
   render
 };
+
+// ── Mobile nav ────────────────────────────────────────────────────────────────
+function openMobileNav() {
+  $("mobile-nav-panel").classList.add("open");
+  $("mobile-nav-backdrop").classList.add("visible");
+  document.body.style.overflow = "hidden";
+}
+function closeMobileNav() {
+  $("mobile-nav-panel").classList.remove("open");
+  $("mobile-nav-backdrop").classList.remove("visible");
+  document.body.style.overflow = "";
+}
+function setViewMobile(el, v) {
+  setView(el, v);
+  // also update desktop nav active state
+  document.querySelectorAll(".sb-nav .nav-item").forEach(x => {
+    x.classList.toggle("active", x.dataset.v === v);
+  });
+  closeMobileNav();
+}
+function tabTasks() {
+  // deselect detail, go back to list
+  selId = null;
+  $("detail-panel").classList.add("hidden");
+  $("sheet-backdrop").classList.remove("visible");
+  render();
+}
+function focusSearch() {
+  $("search").focus();
+  $("search").scrollIntoView({ behavior: "smooth" });
+}
+function closeDetail() {
+  selId = null;
+  $("detail-panel").classList.add("hidden");
+  $("sheet-backdrop").classList.remove("visible");
+  render();
+}
+
+// Patch selTask to show backdrop on mobile
+const _origSelTask = selTask;
+window._patchedSelTask = function(id) {
+  _origSelTask(id);
+  if (window.innerWidth <= 768 && selId !== null) {
+    $("sheet-backdrop").classList.add("visible");
+  } else {
+    $("sheet-backdrop").classList.remove("visible");
+  }
+};
+
+// Patch updateStats to also update mobile nav badges + mobile user row
+const _origUpdateStats = updateStats;
+function updateStatsFull() {
+  _origUpdateStats();
+  // Mirror to mobile nav
+  const ids = ["all","today","week","doing","urgent","blocked","overdue","recurring"];
+  ids.forEach(id => {
+    const desktop = $("b-"+id);
+    const mobile  = $("mb-"+id);
+    if (desktop && mobile) mobile.textContent = desktop.textContent;
+  });
+  // Mobile stats pills
+  const ms = ["stat-total","stat-doing","stat-overdue"].map(id => {
+    const d = $(id); const m = $("m-"+id);
+    if (d && m) m.textContent = d.textContent;
+  });
+  // Mobile progress
+  const mpb = $("m-prog-bar"), mpl = $("m-prog-label");
+  const dpb = $("prog-bar"),   dpl = $("prog-label");
+  if (mpb && dpb) mpb.style.width = dpb.style.width;
+  if (mpl && dpl) mpl.textContent = dpl.textContent;
+  // Tab badge for overdue
+  const ob = $("b-overdue");
+  const tb = $("tab-badge-overdue");
+  if (ob && tb) {
+    const n = parseInt(ob.textContent)||0;
+    tb.textContent = n > 9 ? "9+" : n;
+    tb.style.display = n > 0 ? "flex" : "none";
+  }
+  // Mobile cat nav
+  const mcn = $("mobile-cat-nav");
+  if (mcn) {
+    mcn.innerHTML = state.cats.map(c => `
+      <div class="nav-item${view==="cat:"+c.id?" active":""}" onclick="App.setViewMobile(this,'cat:${c.id}')">
+        <span class="cat-dot" style="background:${c.color}"></span>${esc(c.label)}
+        <span class="nav-badge">${state.tasks.filter(t=>t.cat===c.id&&t.status!=="done").length}</span>
+      </div>`).join("");
+  }
+  // Mirror user row to mobile
+  const mur = $("mobile-user-row");
+  const dur = $("user-row");
+  if (mur && dur) mur.innerHTML = dur.innerHTML;
+}
+
+// Override render to call updateStatsFull
+const _origRender = render;
+function renderFull() {
+  _origRender();
+  updateStatsFull();
+}
+
+// Re-export patched versions
+Object.assign(window.App, {
+  openMobileNav, closeMobileNav,
+  setViewMobile, tabTasks, focusSearch, closeDetail,
+  selTask: window._patchedSelTask,
+  render: renderFull
+});
+
+// Kick off with full render
+renderFull();

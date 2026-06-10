@@ -162,6 +162,76 @@
   <div class="dashboard-overlay hidden" id="dashboard-overlay" onclick="App.closeDashboard(event)">
     <div class="dashboard-panel" id="dashboard-panel"></div>
   </div>
+
+  <!-- SHEET BACKDROP -->
+  <div class="sheet-backdrop" id="sheet-backdrop" onclick="App.closeDetail()"></div>
+
+  <!-- MOBILE NAV BACKDROP -->
+  <div class="mobile-nav-backdrop" id="mobile-nav-backdrop" onclick="App.closeMobileNav()"></div>
+
+  <!-- MOBILE NAV PANEL -->
+  <div class="mobile-nav-panel" id="mobile-nav-panel">
+    <div class="mobile-nav-header">
+      <img src="logo.png" alt="Multifocal">
+      <button class="icon-btn" onclick="App.closeMobileNav()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="user-row" id="mobile-user-row"></div>
+    <div class="sb-stats" style="padding:10px">
+      <div class="stat-pill"><span id="m-stat-total">0</span><span>total</span></div>
+      <div class="stat-pill accent"><span id="m-stat-doing">0</span><span>andamento</span></div>
+      <div class="stat-pill danger"><span id="m-stat-overdue">0</span><span>atrasadas</span></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span id="m-prog-label">0%</span></div>
+      <div class="prog-track"><div class="prog-bar" id="m-prog-bar" style="width:0%"></div></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-section-label">Visualizar</div>
+      <div class="nav-item active" data-v="all"       onclick="App.setViewMobile(this,'all')"><i class="ti ti-layout-list"></i>Todas<span class="nav-badge" id="mb-all">0</span></div>
+      <div class="nav-item" data-v="today"    onclick="App.setViewMobile(this,'today')"><i class="ti ti-sun"></i>Hoje<span class="nav-badge warn" id="mb-today">0</span></div>
+      <div class="nav-item" data-v="week"     onclick="App.setViewMobile(this,'week')"><i class="ti ti-calendar-week"></i>Esta semana<span class="nav-badge" id="mb-week">0</span></div>
+      <div class="nav-item" data-v="doing"    onclick="App.setViewMobile(this,'doing')"><i class="ti ti-player-play"></i>Em andamento<span class="nav-badge accent" id="mb-doing">0</span></div>
+      <div class="nav-item" data-v="urgent"   onclick="App.setViewMobile(this,'urgent')"><i class="ti ti-flame"></i>Urgentes<span class="nav-badge danger" id="mb-urgent">0</span></div>
+      <div class="nav-item" data-v="blocked"  onclick="App.setViewMobile(this,'blocked')"><i class="ti ti-ban"></i>Bloqueadas<span class="nav-badge" id="mb-blocked">0</span></div>
+      <div class="nav-item" data-v="overdue"  onclick="App.setViewMobile(this,'overdue')"><i class="ti ti-alert-circle"></i>Atrasadas<span class="nav-badge danger" id="mb-overdue">0</span></div>
+      <div class="nav-item" data-v="recurring" onclick="App.setViewMobile(this,'recurring')"><i class="ti ti-refresh"></i>Recorrentes<span class="nav-badge" id="mb-recurring">0</span></div>
+      <div class="nav-section-label" style="margin-top:8px">Categorias</div>
+      <div id="mobile-cat-nav"></div>
+      <button class="nav-add-btn" onclick="App.openNewCat();App.closeMobileNav()"><i class="ti ti-plus"></i>Nova categoria</button>
+    </nav>
+    <div class="sb-footer">
+      <button class="footer-btn" onclick="App.exportJSON()"><i class="ti ti-download"></i>Exportar</button>
+      <button class="footer-btn" onclick="App.triggerImport()"><i class="ti ti-upload"></i>Importar</button>
+      <button class="footer-btn danger" onclick="App.confirmClearAll()"><i class="ti ti-trash"></i>Limpar</button>
+      <button class="footer-btn" onclick="App.signOut()"><i class="ti ti-logout"></i>Sair</button>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar" id="tab-bar">
+    <button class="tab-item" id="tab-menu" onclick="App.openMobileNav()" title="Menu">
+      <i class="ti ti-menu-2"></i>
+      <span>Menu</span>
+    </button>
+    <button class="tab-item active" id="tab-tasks" onclick="App.tabTasks()" title="Tarefas">
+      <i class="ti ti-layout-list"></i>
+      <span>Tarefas</span>
+      <span class="tab-badge" id="tab-badge-overdue" style="display:none"></span>
+    </button>
+    <button class="tab-item" id="tab-new" onclick="App.openModal()" title="Nova tarefa">
+      <i class="ti ti-plus" style="background:var(--blue);color:#fff;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:2px"></i>
+      <span>Nova</span>
+    </button>
+    <button class="tab-item" id="tab-dash" onclick="App.openDashboard()" title="Dashboard">
+      <i class="ti ti-chart-bar"></i>
+      <span>Dashboard</span>
+    </button>
+    <button class="tab-item" id="tab-search" onclick="App.focusSearch()" title="Buscar">
+      <i class="ti ti-search"></i>
+      <span>Buscar</span>
+    </button>
+  </nav>
+
 </div>
 
 <!-- TASK MODAL -->
