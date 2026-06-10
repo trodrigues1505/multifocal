@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Multifocal — Gerenciador de Tarefas</title>
 <meta name="description" content="Gerencie suas tarefas com foco e clareza. Sincronizado em qualquer dispositivo.">
-<meta name="theme-color" content="#3B82F6">
+<meta name="theme-color" content="#F8F8F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13141F" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Multifocal">
@@ -117,7 +118,7 @@
     <div class="sb-footer">
       <button class="footer-btn" onclick="App.exportJSON()" title="Exportar dados"><i class="ti ti-download"></i>Exportar</button>
       <button class="footer-btn" onclick="App.triggerImport()" title="Importar dados"><i class="ti ti-upload"></i>Importar</button>
-      <button class="footer-btn" id="btn-install" onclick="App.installPWA()" title="Instalar app" style="display:none"><i class="ti ti-device-mobile"></i>Instalar</button>
+      <button class="footer-btn" id="btn-install" onclick="App.installPWA()" title="Instalar app"><i class="ti ti-device-mobile"></i>Instalar</button>
       <button class="footer-btn danger" onclick="App.confirmClearAll()" title="Limpar tarefas"><i class="ti ti-trash"></i>Limpar</button>
       <button class="footer-btn" onclick="App.signOut()" title="Sair da conta"><i class="ti ti-logout"></i>Sair</button>
     </div>

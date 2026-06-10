@@ -33,13 +33,19 @@ const getCat  = id => state.cats.find(c=>c.id===id) || {label:id||"",color:"#888
 const now     = () => Date.now();
 
 // ── LGPD ──────────────────────────────────────────────────────────────────────
+function lgpdKey() {
+  // Per-user key so each new user sees the banner
+  return LS_LGPD + (currentUser ? "_" + currentUser.uid : "_guest");
+}
 function checkLgpd() {
-  if (!localStorage.getItem(LS_LGPD)) {
+  if (!localStorage.getItem(lgpdKey())) {
     $("lgpd-banner").classList.remove("hidden");
+  } else {
+    $("lgpd-banner").classList.add("hidden");
   }
 }
 function acceptLgpd() {
-  localStorage.setItem(LS_LGPD, "1");
+  localStorage.setItem(lgpdKey(), "1");
   $("lgpd-banner").classList.add("hidden");
 }
 function openPrivacy() {
@@ -50,13 +56,10 @@ function openPrivacy() {
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  const btn = $("btn-install");
-  if (btn) btn.style.display = "flex";
+  // Button is always visible — native prompt now available
 });
 window.addEventListener("appinstalled", () => {
   deferredInstallPrompt = null;
-  const btn = $("btn-install");
-  if (btn) btn.style.display = "none";
   toast("App instalado com sucesso!");
 });
 
