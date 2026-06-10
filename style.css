@@ -99,7 +99,9 @@ button { cursor: pointer; }
   background: var(--surface); border-top: 1px solid var(--border2);
   z-index: 500; padding: 14px 20px;
   box-shadow: 0 -4px 24px rgba(0,0,0,.08);
+  display: none;
 }
+.lgpd-banner.visible { display: block; }
 .lgpd-content { display: flex; align-items: flex-start; gap: 12px; max-width: 900px; margin: 0 auto; }
 .lgpd-text { flex: 1; font-size: 13px; color: var(--text2); display: flex; flex-direction: column; gap: 3px; }
 .lgpd-text strong { color: var(--text); font-size: 13px; }
@@ -596,7 +598,21 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-wi
 
   /* Modal full-screen on small phones */
   .modal-overlay { padding: 0; align-items: flex-end; }
-  .modal { width: 100%; max-width: 100%; border-radius: var(--rxl) var(--rxl) 0 0; max-height: 95vh; }
+  .modal {
+    width: 100%; max-width: 100%;
+    border-radius: var(--rxl) var(--rxl) 0 0;
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+  }
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-footer {
+    flex-shrink: 0;
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+  }
   .mf-row { grid-template-columns: 1fr; }
   .mf input, .mf select, .mf textarea { font-size: 16px; } /* prevent iOS zoom */
 

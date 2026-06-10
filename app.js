@@ -38,15 +38,20 @@ function lgpdKey() {
   return LS_LGPD + (currentUser ? "_" + currentUser.uid : "_guest");
 }
 function checkLgpd() {
+  const el = $("lgpd-banner");
+  if (!el) return;
   if (!localStorage.getItem(lgpdKey())) {
-    $("lgpd-banner").classList.remove("hidden");
+    el.style.display = "block";
+    el.classList.add("visible");
   } else {
-    $("lgpd-banner").classList.add("hidden");
+    el.style.display = "none";
+    el.classList.remove("visible");
   }
 }
 function acceptLgpd() {
   localStorage.setItem(lgpdKey(), "1");
-  $("lgpd-banner").classList.add("hidden");
+  const el = $("lgpd-banner");
+  if (el) { el.style.display = "none"; el.classList.remove("visible"); }
 }
 function openPrivacy() {
   $("privacy-overlay").classList.remove("hidden");

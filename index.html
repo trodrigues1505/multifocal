@@ -23,7 +23,7 @@
 <body>
 
 <!-- LGPD BANNER -->
-<div id="lgpd-banner" class="lgpd-banner hidden">
+<div id="lgpd-banner" class="lgpd-banner" style="display:none">
   <div class="lgpd-content">
     <i class="ti ti-shield-lock" style="font-size:20px;color:var(--blue);flex-shrink:0"></i>
     <div class="lgpd-text">
@@ -116,11 +116,11 @@
     </nav>
 
     <div class="sb-footer">
-       <button class="footer-btn" onclick="App.exportJSON()"><i class="ti ti-download"></i>Exportar</button>
-  <button class="footer-btn" onclick="App.triggerImport()"><i class="ti ti-upload"></i>Importar</button>
-  <button class="footer-btn" onclick="App.installPWA()"><i class="ti ti-device-mobile"></i>Instalar</button>
-  <button class="footer-btn danger" onclick="App.confirmClearAll()"><i class="ti ti-trash"></i>Limpar</button>
-  <button class="footer-btn" onclick="App.signOut()"><i class="ti ti-logout"></i>Sair</button>
+      <button class="footer-btn" onclick="App.exportJSON()" title="Exportar dados"><i class="ti ti-download"></i>Exportar</button>
+      <button class="footer-btn" onclick="App.triggerImport()" title="Importar dados"><i class="ti ti-upload"></i>Importar</button>
+      <button class="footer-btn" id="btn-install" onclick="App.installPWA()" title="Instalar app"><i class="ti ti-device-mobile"></i>Instalar</button>
+      <button class="footer-btn danger" onclick="App.confirmClearAll()" title="Limpar tarefas"><i class="ti ti-trash"></i>Limpar</button>
+      <button class="footer-btn" onclick="App.signOut()" title="Sair da conta"><i class="ti ti-logout"></i>Sair</button>
     </div>
   </aside>
 
@@ -203,6 +203,7 @@
     <div class="sb-footer">
       <button class="footer-btn" onclick="App.exportJSON()"><i class="ti ti-download"></i>Exportar</button>
       <button class="footer-btn" onclick="App.triggerImport()"><i class="ti ti-upload"></i>Importar</button>
+      <button class="footer-btn" onclick="App.installPWA();App.closeMobileNav()"><i class="ti ti-device-mobile"></i>Instalar</button>
       <button class="footer-btn danger" onclick="App.confirmClearAll()"><i class="ti ti-trash"></i>Limpar</button>
       <button class="footer-btn" onclick="App.signOut()"><i class="ti ti-logout"></i>Sair</button>
     </div>
