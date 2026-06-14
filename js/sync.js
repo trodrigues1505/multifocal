@@ -56,7 +56,7 @@ export function startSync(uid) {
       appState.cats   = d.cats   || [];
       appState.nextId = d.nextId || 1;
     } else {
-      initDefaults();
+      if (window._jarvisInitDefaults) window._jarvisInitDefaults();
       pushToFirestore();
     }
     _render();
@@ -107,14 +107,7 @@ function setSyncState(s) {
     :                 "Sincronizado";
 }
 
-// ── Defaults (novo usuário) ───────────────────────────────────────────────────
-export function initDefaults() {
-  const { today, addDays, now } = await import("./utils.js").then(m => m);
-  // utils são síncronas — import estático resolvido
-  // (chamamos direto pois utils.js não tem side effects)
-}
-
-// Versão síncrona (utils já importadas estaticamente acima no app.js)
+// ── Defaults (novo usuário) ──────────────────────────────────────────────────
 export function initDefaultsSync(todayFn, addDaysFn, nowFn) {
   appState.cats = [
     { id:"work",     label:"Trabalho", color:"#3B82F6" },

@@ -67,18 +67,10 @@ setCatRenderFn(renderFull);
 setMobileRenderFns(renderFull, renderDetail, setView);
 setVoiceRenderFn(renderFull);
 
-// initDefaults precisa de utils — passa as funções
-import { initDefaultsSync as _ids } from "./sync.js";
-// já importado acima como initDefaultsSync
-
-// ── Override startSync para usar initDefaultsSync corretamente ────────────────
-// (sync.js tem uma versão stub de initDefaults — aqui passamos as utils reais)
-import { startSync as _startSync } from "./sync.js";
-
-// Patch: quando Firestore retorna vazio, usa initDefaultsSync com utils reais
-const _origStartSync = startSync;
-
 // ── Auth init ─────────────────────────────────────────────────────────────────
+// Passa as utils para initDefaultsSync via window (resolvido em sync.js)
+window._jarvisInitDefaults = () => initDefaultsSync(today, addDays, now);
+
 initAuth(
   // onLogin
   user => {
@@ -91,10 +83,6 @@ initAuth(
     checkLgpd();
   }
 );
-
-// Passa initDefaultsSync para sync.js (chamada interna via patch)
-// A abordagem mais simples: reexportar initDefaultsSync com utils já vinculadas
-window._jarvisInitDefaults = () => initDefaultsSync(today, addDays, now);
 
 // ── Selecionar tarefa com suporte ao sheet backdrop mobile ────────────────────
 function selTaskFull(id) {
