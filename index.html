@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jarvis — Gerenciador de Tarefas</title>
-<meta name="description" content="Gerencie suas tarefas com inteligência e foco. Sincronizado em qualquer dispositivo.">
+<meta name="description" content="Gerencie suas tarefas com inteligência. Sincronizado em qualquer dispositivo.">
 <meta name="theme-color" content="#F8F8F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#13141F" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -56,7 +56,7 @@
     <i class="ti ti-shield-lock" style="font-size:20px;color:var(--blue);flex-shrink:0"></i>
     <div class="lgpd-text">
       <strong>Privacidade e dados</strong>
-      <span>O Jarvis usa sua conta Google apenas para autenticação e armazenar suas tarefas de forma segura no Firebase. Não compartilhamos seus dados com terceiros. Em conformidade com a <strong>LGPD (Lei 13.709/2018)</strong>. <a href="#" onclick="App.openPrivacy();return false">Política de privacidade</a></span>
+      <span>Usamos sua conta Google apenas para autenticação e armazenar suas tarefas de forma segura no Firebase. Não compartilhamos seus dados com terceiros. Em conformidade com a <strong>LGPD (Lei 13.709/2018)</strong>. <a href="#" onclick="App.openPrivacy();return false">Política de privacidade</a></span>
     </div>
     <button class="lgpd-accept" onclick="App.acceptLgpd()">Entendi e aceito</button>
     <button class="lgpd-close" onclick="App.acceptLgpd()" title="Fechar"><i class="ti ti-x"></i></button>
@@ -105,7 +105,7 @@
         <div class="sync-indicator" id="sync-indicator" title="Sincronizado">
           <i class="ti ti-cloud-check"></i>
         </div>
-        <button class="icon-btn" id="voice-btn" onclick="App.toggleVoice()" title="Comando por voz (V)">
+        <button class="icon-btn voice-btn" onclick="App.toggleVoice()" title="Comando por voz (V)" id="voice-btn-sb">
           <i class="ti ti-microphone"></i>
         </button>
         <button class="icon-btn" onclick="App.openDashboard()" title="Dashboard" id="btn-dashboard">
@@ -263,9 +263,9 @@
       <i class="ti ti-search"></i>
       <span>Buscar</span>
     </button>
-    <button class="tab-item" id="voice-btn-mobile" onclick="App.toggleVoice()" title="Comando por voz">
+    <button class="tab-item voice-btn" id="tab-voice" onclick="App.toggleVoice()" title="Comando por voz">
       <i class="ti ti-microphone"></i>
-      <span>Voz</span>
+      <span>Jarvis</span>
     </button>
   </nav>
 
@@ -361,7 +361,7 @@
         <div class="shortcut-row"><kbd>/</kbd><span>Focar na busca</span></div>
         <div class="shortcut-row"><kbd>Esc</kbd><span>Fechar modal / painel</span></div>
         <div class="shortcut-row"><kbd>?</kbd><span>Mostrar atalhos</span></div>
-        <div class="shortcut-row"><kbd>V</kbd><span>Ativar comando por voz</span></div>
+        <div class="shortcut-row"><kbd>V</kbd><span>Ativar Jarvis por voz</span></div>
       </div>
     </div>
   </div>
@@ -410,6 +410,79 @@
   </div>
 </div>
 
+
+<!-- VOICE INDICATOR -->
+<div class="voice-indicator" id="voice-indicator" style="display:none">
+  <div class="vi-ring"></div>
+  <span class="vi-text">Ouvindo...</span>
+  <button onclick="App.stopListening()" class="vi-stop"><i class="ti ti-x"></i> Parar</button>
+</div>
+
+<!-- CAT MODAL (create / edit) -->
+<div class="modal-overlay hidden" id="cat-modal-overlay" onclick="if(event.target===this)App.closeCatModal()">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <h2 id="cat-modal-title">Nova categoria</h2>
+      <button class="icon-btn" onclick="App.closeCatModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cat-modal-id">
+      <div class="mf"><label>Nome</label><input type="text" id="cat-name-input" placeholder="Ex: Trabalho, Pessoal..."></div>
+      <div class="mf"><label>Cor</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" id="cat-color-input" style="width:48px;height:36px;padding:2px;border-radius:6px;cursor:pointer;border:1px solid var(--border2)">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="color-swatch" style="background:#3B82F6" onclick="document.getElementById('cat-color-input').value='#3B82F6'"></span>
+            <span class="color-swatch" style="background:#4CAF8A" onclick="document.getElementById('cat-color-input').value='#4CAF8A'"></span>
+            <span class="color-swatch" style="background:#7C5CBF" onclick="document.getElementById('cat-color-input').value='#7C5CBF'"></span>
+            <span class="color-swatch" style="background:#F59500" onclick="document.getElementById('cat-color-input').value='#F59500'"></span>
+            <span class="color-swatch" style="background:#E53935" onclick="document.getElementById('cat-color-input').value='#E53935'"></span>
+            <span class="color-swatch" style="background:#0EA5E9" onclick="document.getElementById('cat-color-input').value='#0EA5E9'"></span>
+            <span class="color-swatch" style="background:#D946EF" onclick="document.getElementById('cat-color-input').value='#D946EF'"></span>
+            <span class="color-swatch" style="background:#EC4899" onclick="document.getElementById('cat-color-input').value='#EC4899'"></span>
+            <span class="color-swatch" style="background:#14B8A6" onclick="document.getElementById('cat-color-input').value='#14B8A6'"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="App.closeCatModal()">Cancelar</button>
+      <button class="btn-save" onclick="App.saveCat()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CAT MODAL -->
+<div class="modal-overlay hidden" id="del-cat-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h2 style="color:var(--red)"><i class="ti ti-trash" style="margin-right:6px"></i>Excluir categoria</h2>
+      <button class="icon-btn" onclick="document.getElementById('del-cat-overlay').classList.add('hidden')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text2)">Excluir a categoria <strong id="del-cat-name" style="color:var(--text)"></strong>?</p>
+      <input type="hidden" id="del-cat-id">
+      <div id="del-cat-task-section" style="display:none;margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:13px;color:var(--text2)">Existem <strong id="del-cat-task-count">0</strong> tarefa(s) nessa categoria. O que fazer com elas?</p>
+        <div class="mf"><label>Ação</label>
+          <select id="del-cat-action" onchange="App.updateDelCatUI()">
+            <option value="move">Mover para outra categoria</option>
+            <option value="delete">Excluir as tarefas também</option>
+          </select>
+        </div>
+        <div id="del-cat-move-row" style="display:flex;gap:8px;align-items:center">
+          <label style="font-size:12px;color:var(--text2);white-space:nowrap">Mover para:</label>
+          <select id="del-cat-move-select" style="flex:1;font-size:13px;padding:7px 9px"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="document.getElementById('del-cat-overlay').classList.add('hidden')">Cancelar</button>
+      <button class="btn-danger" onclick="App.executeDeleteCat()"><i class="ti ti-trash"></i> Excluir</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="import-input" accept=".json" style="display:none" onchange="App.importJSON(event)">
 <div class="toast" id="toast"></div>
 
@@ -430,4 +503,4 @@ if ('serviceWorker' in navigator) {
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="app.js"></script>
 </body>
-</html>   
+</html>      
