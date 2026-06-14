@@ -1,6 +1,6 @@
 {
-  "name": "Multifocal — Gerenciador de Tarefas",
-  "short_name": "Multifocal",
+  "name": "Jarvis — Gerenciador de Tarefas",
+  "short_name": "Jarvis",
   "description": "Gerencie suas tarefas com foco e clareza.",
   "start_url": "./",
   "display": "standalone",
