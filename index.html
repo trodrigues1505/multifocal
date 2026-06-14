@@ -18,7 +18,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="css/jarvis.css">
 <style>
 /* CRITICAL MOBILE — inline to bypass SW cache */
 @media (max-width: 768px) {
@@ -265,7 +268,7 @@
     </button>
     <button class="tab-item voice-btn" id="tab-voice" onclick="App.toggleVoice()" title="Comando por voz">
       <i class="ti ti-microphone"></i>
-      <span>Jarvis</span>
+      <span>Voz</span>
     </button>
   </nav>
 
@@ -415,7 +418,7 @@
 <div class="voice-indicator" id="voice-indicator" style="display:none">
   <div class="vi-ring"></div>
   <span class="vi-text">Ouvindo...</span>
-  <button onclick="App.stopListening()" class="vi-stop"><i class="ti ti-x"></i> Parar</button>
+  <button onclick="App.stopAll()" class="vi-stop"><i class="ti ti-x"></i> Parar</button>
 </div>
 
 <!-- CAT MODAL (create / edit) -->
@@ -496,11 +499,10 @@ if ('serviceWorker' in navigator) {
         !reg.active.scriptURL.includes('sw.js');
       // Always re-register to pick up new version
     }
-    navigator.serviceWorker.register('./sw.js?v=6').catch(e => console.warn('SW:', e));
+    navigator.serviceWorker.register('./sw.js?v=7').catch(e => console.warn('SW:', e));
   });
 }
 </script>
-<script type="module" src="firebase-config.js"></script>
-<script type="module" src="app.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
-</html>      
+</html>

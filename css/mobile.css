@@ -1,0 +1,303 @@
+/* ── mobile.css — Media queries ≤768px ──────────────────────── */
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE  ≤ 768px
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Hide desktop sidebar, show tab bar instead */
+  .sidebar { display: none !important; }
+
+  /* App fills full height minus tab bar */
+  .app { flex-direction: column !important; }
+  .main-area { height: calc(100vh - var(--tabbar-h)) !important; width: 100% !important; }
+
+  /* Task list bottom padding so FAB doesn't overlap last card */
+  .task-list { padding-bottom: calc(var(--tabbar-h) + 16px); }
+
+  /* Topbar: smaller, no sort select (moved elsewhere) */
+  .topbar { padding: 10px 12px; gap: 8px; }
+  .sort-sel { display: none; }
+  .btn-new { padding: 0; width: 38px; height: 38px; border-radius: 50%; justify-content: center; font-size: 0; flex-shrink: 0; }
+  .btn-new i { font-size: 20px; margin: 0; }
+  .btn-new span { display: none; }
+
+  /* Filters: horizontal scroll, no wrap */
+  .filters-bar { padding: 6px 12px; gap: 5px; }
+  .chip { padding: 5px 12px; font-size: 12px; }
+
+  /* Cards: slightly bigger tap targets */
+  .task-card { padding: 13px 13px; }
+  .task-check { width: 26px; height: 26px; }
+  .task-check i { font-size: 12px; }
+  .task-title { font-size: 14px; }
+  .task-meta { padding-left: 36px; }
+
+  /* ── Tab bar ────────────────────────────────────────── */
+  .tab-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: var(--tabbar-h);
+    background: var(--surface);
+    border-top: 1px solid var(--border2);
+    display: flex; align-items: stretch;
+    z-index: 200;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -2px 16px rgba(0,0,0,.08);
+  }
+  .tab-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer;
+    color: var(--text3); font-size: 10px; font-weight: 500;
+    transition: color .15s; position: relative;
+    border: none; background: transparent;
+    padding: 0;
+  }
+  .tab-item i { font-size: 22px; }
+  .tab-item.active { color: var(--blue); }
+  .tab-item .tab-badge {
+    position: absolute; top: 6px; right: calc(50% - 16px);
+    background: var(--red); color: #fff;
+    font-size: 9px; font-weight: 700;
+    min-width: 16px; height: 16px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; border: 2px solid var(--surface);
+  }
+
+  /* ── FAB (new task) on mobile — override the topbar btn ── */
+  /* Keep the topbar btn as a small round icon, it's fine */
+
+  /* ── Detail panel → bottom sheet ───────────────────── */
+  .detail-panel {
+    position: fixed !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
+    width: 100% !important;
+    height: 85vh;
+    border-left: none !important;
+    border-top: 1px solid var(--border2);
+    border-radius: var(--rxl) var(--rxl) 0 0;
+    z-index: 300;
+    transform: translateY(100%);
+    transition: transform .32s cubic-bezier(.4,0,.2,1);
+    overflow-y: auto;
+    box-shadow: 0 -8px 40px rgba(0,0,0,.12);
+  }
+  .detail-panel:not(.hidden) {
+    transform: translateY(0);
+    display: flex;
+  }
+
+  /* Drag handle at top of sheet */
+  .detail-panel::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: var(--bg3); border-radius: 2px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+  }
+
+  /* Backdrop when sheet is open */
+  .sheet-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 299;
+  }
+  .sheet-backdrop.visible { display: block; }
+
+  /* Detail panel internal adjustments */
+  .dp-head { border-radius: var(--rxl) var(--rxl) 0 0; padding-top: 8px; }
+  .dp-body { padding-bottom: calc(var(--tabbar-h) + 24px); }
+  .dp-field select, .dp-field input, .dp-field textarea { font-size: 16px; } /* prevent iOS zoom */
+
+  /* Dashboard slides from bottom on mobile too */
+  .dashboard-overlay { align-items: flex-end; }
+  .dashboard-panel {
+    width: 100%;
+    height: 90dvh;
+    height: 90vh; /* fallback */
+    border-radius: var(--rxl) var(--rxl) 0 0;
+    padding: 20px 16px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  /* Modal full-screen on small phones */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+    /* Full viewport, no overflow hidden */
+  }
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: var(--rxl) var(--rxl) 0 0;
+    /* Use dvh so iOS Safari toolbar is accounted for */
+    max-height: 88dvh;
+    max-height: 88vh; /* fallback */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    flex-shrink: 0;
+  }
+  .modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Prevent body scroll while modal is open */
+    overscroll-behavior: contain;
+  }
+  .modal-footer {
+    flex-shrink: 0;
+    background: var(--surface);
+    /* Safe area for home bar on iPhone */
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+  }
+  .mf-row { grid-template-columns: 1fr; }
+  .mf input, .mf select, .mf textarea { font-size: 16px; } /* prevent iOS zoom */
+
+  /* Toast above tab bar */
+  .toast { bottom: calc(var(--tabbar-h) + 12px); right: 12px; left: 12px; text-align: center; }
+
+  /* LGPD above tab bar */
+  .lgpd-banner { padding-bottom: calc(var(--tabbar-h) + 10px); }
+  .lgpd-content { flex-wrap: wrap; }
+  .lgpd-accept { width: 100%; margin-top: 4px; }
+
+  /* Filters full width scroll */
+  .filters-bar { flex-wrap: nowrap; overflow-x: auto; }
+
+  /* Mobile nav panel — slides from left via tab bar "menu" tap */
+  .mobile-nav-panel {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 280px; background: var(--surface);
+    border-right: 1px solid var(--border2);
+    z-index: 400; overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,.12);
+  }
+  .mobile-nav-panel.open { transform: translateX(0); }
+  .mobile-nav-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.4); z-index: 399;
+  }
+  .mobile-nav-backdrop.visible { display: block; }
+
+  /* Mobile nav header */
+  .mobile-nav-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px; border-bottom: 1px solid var(--border);
+  }
+  .mobile-nav-header img { height: 32px; }
+}
+
+/* ── Tab bar hidden on desktop ─────────────────────────── */
+.tab-bar { display: none; }
+.mobile-nav-panel { display: none; }
+.mobile-nav-backdrop { display: none; }
+.sheet-backdrop { display: none; }
+@media (max-width: 768px) {
+  .tab-bar { display: flex !important; }
+  .mobile-nav-panel { display: block !important; }
+}
+
+/* ══════════════════════════════════════════════════════
+   JARVIS ADDITIONS
+   ══════════════════════════════════════════════════════ */
+
+/* ── Category nav actions ────────────────────────────── */
+.cat-nav-item { position: relative; }
+.cat-actions {
+  display: none; align-items: center; gap: 2px;
+  margin-left: 4px; flex-shrink: 0;
+}
+.cat-nav-item:hover .cat-actions { display: flex; }
+.cat-action-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 5px;
+  border: none; background: transparent;
+  color: var(--text3); font-size: 12px; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.cat-action-btn:hover { background: var(--bg3); color: var(--text); }
+.cat-action-btn.danger:hover { background: var(--red-bg); color: var(--red); }
+
+/* ── Color swatches ──────────────────────────────────── */
+.color-swatch {
+  width: 20px; height: 20px; border-radius: 50%;
+  cursor: pointer; border: 2px solid transparent;
+  flex-shrink: 0; transition: transform .1s, border-color .1s;
+  display: inline-block;
+}
+.color-swatch:hover { transform: scale(1.2); border-color: var(--text3); }
+
+/* ── Voice button states ─────────────────────────────── */
+.icon-btn.voice-listening,
+.tab-item.voice-listening {
+  color: var(--red) !important;
+}
+.icon-btn.voice-listening { background: var(--red-bg) !important; }
+.icon-btn.voice-processing,
+.tab-item.voice-processing { color: var(--amber) !important; }
+.icon-btn.voice-processing { background: var(--amber-bg) !important; }
+
+@keyframes voice-pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.7; transform:scale(1.12); }
+}
+.voice-listening .ti-microphone { animation: voice-pulse .9s ease-in-out infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.voice-processing .ti-loader { animation: spin .7s linear infinite; }
+
+/* ── Voice indicator overlay ─────────────────────────── */
+.voice-indicator {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 40px; padding: 10px 20px 10px 14px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.15);
+  z-index: 9999; min-width: 200px; justify-content: center;
+}
+.voice-indicator.listening { border-color: var(--red); }
+.voice-indicator.speaking { border-color: var(--blue); }
+.voice-indicator.processing { border-color: var(--amber); }
+.voice-indicator.speaking .vi-ring { background: var(--blue); animation: vi-beat .5s ease-in-out infinite; }
+.vi-ring {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--red); flex-shrink: 0;
+  animation: vi-beat .8s ease-in-out infinite;
+}
+.voice-indicator.processing .vi-ring { background: var(--amber); animation: spin .7s linear infinite; border-radius: 0; clip-path: none; }
+@keyframes vi-beat {
+  0%,100% { transform: scale(1); opacity:1; }
+  50%      { transform: scale(1.4); opacity:.6; }
+}
+.vi-text { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+.vi-stop {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2);
+  background: transparent; color: var(--text3); font-size: 12px; cursor: pointer;
+  transition: all .12s; white-space: nowrap;
+}
+.vi-stop:hover { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+
+@media (max-width: 768px) {
+  .voice-indicator { bottom: calc(62px + 12px); width: calc(100% - 32px); left: 16px; transform: none; }
+  /* Show cat actions on mobile with long press hint */
+  .cat-actions { display: flex; }
+  .cat-action-btn { width: 28px; height: 28px; font-size: 14px; }
+}
+
+/* Jarvis standby — subtle pulse on mic button */
+.voice-btn.voice-standby i {
+  animation: standby-glow 3s ease-in-out infinite;
+}
+@keyframes standby-glow {
+  0%,100% { opacity:.5; }
+  50%      { opacity:1; }
+}

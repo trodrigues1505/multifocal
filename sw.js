@@ -1,14 +1,26 @@
-const CACHE = "jarvis-v1";
+const CACHE = "jarvis-v2";
 const ASSETS = [
   "./",
   "./index.html",
-  "./style.css",
-  "./app.js",
   "./firebase-config.js",
   "./manifest.json",
   "./logo.png",
   "./icon-192.png",
   "./icon-512.png",
+  "./css/base.css",
+  "./css/components.css",
+  "./css/mobile.css",
+  "./css/jarvis.css",
+  "./js/constants.js",
+  "./js/state.js",
+  "./js/utils.js",
+  "./js/sync.js",
+  "./js/tasks.js",
+  "./js/categories.js",
+  "./js/ui.js",
+  "./js/mobile.js",
+  "./js/voice.js",
+  "./js/app.js",
 ];
 
 self.addEventListener("install", e => {
@@ -53,4 +65,4 @@ self.addEventListener("fetch", e => {
       })
       .catch(() => caches.match(e.request))
   );
-});   
+});

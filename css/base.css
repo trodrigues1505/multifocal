@@ -1,0 +1,96 @@
+/* ── base.css — Reset, variáveis, elementos básicos ─────────── */
+
+/* ── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:         #3B82F6;
+  --blue-dark:    #1D5FCC;
+  --blue-light:   #EBF3FF;
+  --green:        #4CAF8A;
+  --green-dark:   #2D7A5F;
+  --green-light:  #E6F7F1;
+  --purple:       #7C5CBF;
+  --purple-dark:  #5A3E99;
+  --purple-light: #F0EBFF;
+  --navy:         #1E2340;
+  --accent:       var(--blue);
+  --accent-dark:  var(--blue-dark);
+  --accent-light: var(--blue-light);
+  --bg:       #F8F8F6;
+  --bg2:      #F1F1EE;
+  --bg3:      #E5E5E1;
+  --surface:  #FFFFFF;
+  --border:   rgba(30,35,64,.07);
+  --border2:  rgba(30,35,64,.14);
+  --border3:  rgba(30,35,64,.28);
+  --text:     #1E2340;
+  --text2:    #5A5E7A;
+  --text3:    #9598B0;
+  --red:      #E53935;
+  --red-bg:   #FEECEC;
+  --amber:    #F59500;
+  --amber-bg: #FEF3DC;
+  --p-urgent: #E53935;
+  --p-high:   #F59500;
+  --p-medium: #3B82F6;
+  --p-low:    #B0B3C8;
+  --sidebar-w: 214px;
+  --detail-w:  288px;
+  --tabbar-h:  62px;
+  --r:  8px;
+  --rl: 12px;
+  --rxl:16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --blue-light:   #1A2E50;
+    --green-light:  #0D2E22;
+    --purple-light: #1E1640;
+    --bg:      #13141F;
+    --bg2:     #1C1D2E;
+    --bg3:     #252638;
+    --surface: #1C1D2E;
+    --border:  rgba(255,255,255,.07);
+    --border2: rgba(255,255,255,.14);
+    --border3: rgba(255,255,255,.28);
+    --text:    #E8E9F4;
+    --text2:   #9598B8;
+    --text3:   #555870;
+    --red-bg:  #2E1414;
+    --amber-bg:#2E2008;
+  }
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+input, select, textarea {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 8px 10px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+textarea { resize: vertical; min-height: 64px; }
+button { cursor: pointer; }
+.hidden { display: none !important; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
