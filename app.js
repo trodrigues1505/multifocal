@@ -11,8 +11,8 @@ const STATUS_LABEL = { todo:"A fazer", doing:"Em andamento", review:"Revisão", 
 const STATUS_CLS   = { todo:"b-todo", doing:"b-doing", review:"b-review", blocked:"b-blocked", done:"b-done" };
 const RECUR_LABEL  = { daily:"Diária", weekly:"Semanal", monthly:"Mensal" };
 const DAYS_PT      = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-const LS_KEY       = "multifocal_v1";
-const LS_LGPD      = "multifocal_lgpd";
+const LS_KEY       = "jarvis_v1";
+const LS_LGPD      = "jarvis_lgpd";
 
 // ── State ────────────────────────────────────────────────────────────────────
 let state = { tasks:[], cats:[], nextId:1 };
@@ -65,7 +65,7 @@ window.addEventListener("beforeinstallprompt", e => {
 });
 window.addEventListener("appinstalled", () => {
   deferredInstallPrompt = null;
-  toast("App instalado com sucesso!");
+  toast("Jarvis instalado com sucesso!");
 });
 
 function installPWA() {
@@ -571,7 +571,7 @@ function renderDashboard() {
 // ── Import / Export ───────────────────────────────────────────────────────────
 function exportJSON() {
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="multifocal-backup.json"; a.click();
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="jarvis-backup.json"; a.click();
   toast("Exportado ✓");
 }
 function triggerImport() { $("import-input").click(); }
@@ -737,3 +737,128 @@ Object.assign(window.App, {
 
 // Kick off with full render
 renderFull();
+
+// ── Voice Command System ──────────────────────────────────────────────────────
+const VOICE_COMMANDS = [
+  // Navegação
+  { pattern: /\b(todas|tudo|geral)\b/i,        action: () => { const el=document.querySelector('[data-v="all"]'); if(el) App.setViewMobile?App.setViewMobile(el,'all'):App.setView(el,'all'); } },
+  { pattern: /\b(hoje|dia)\b/i,                action: () => { const el=document.querySelector('[data-v="today"]'); if(el) App.setView(el,'today'); } },
+  { pattern: /\b(semana)\b/i,                  action: () => { const el=document.querySelector('[data-v="week"]'); if(el) App.setView(el,'week'); } },
+  { pattern: /\b(andamento|fazendo|ativas?)\b/i,action: () => { const el=document.querySelector('[data-v="doing"]'); if(el) App.setView(el,'doing'); } },
+  { pattern: /\b(urgente|urgentes)\b/i,         action: () => { const el=document.querySelector('[data-v="urgent"]'); if(el) App.setView(el,'urgent'); } },
+  { pattern: /\b(bloqueada|bloqueadas)\b/i,     action: () => { const el=document.querySelector('[data-v="blocked"]'); if(el) App.setView(el,'blocked'); } },
+  { pattern: /\b(atrasad[ao]|atrasadas)\b/i,    action: () => { const el=document.querySelector('[data-v="overdue"]'); if(el) App.setView(el,'overdue'); } },
+  { pattern: /\b(recorrente|recorrentes)\b/i,   action: () => { const el=document.querySelector('[data-v="recurring"]'); if(el) App.setView(el,'recurring'); } },
+  // Ações
+  { pattern: /\b(nova tarefa|criar tarefa|adicionar tarefa|nova|criar)\b/i, action: () => App.openModal() },
+  { pattern: /\b(dashboard|painel|gráfico|gráficos|estatísticas)\b/i,      action: () => App.openDashboard() },
+  { pattern: /\b(buscar|pesquisar|procurar)\s+(.+)/i,  action: (m) => { const q=m[2]; const s=document.getElementById('search'); if(s){s.value=q; App.render();} } },
+  { pattern: /\b(limpar busca|limpar pesquisa|limpar filtro)\b/i, action: () => { const s=document.getElementById('search'); if(s){s.value=''; App.render();} } },
+  { pattern: /\b(exportar|export|backup)\b/i,  action: () => App.exportJSON() },
+  { pattern: /\b(atalhos|ajuda|help)\b/i,      action: () => App.openShortcuts() },
+  { pattern: /\b(fechar|voltar|cancelar)\b/i,   action: () => { document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); } },
+  // Filtros de status
+  { pattern: /\b(filtrar|mostrar)\s+(concluídas|feitas|done)\b/i,    action: () => { const el=document.querySelector('[data-s="done"]'); if(el) App.setSt(el,'done'); } },
+  { pattern: /\b(filtrar|mostrar)\s+(a fazer|pendentes|todo)\b/i,     action: () => { const el=document.querySelector('[data-s="todo"]'); if(el) App.setSt(el,'todo'); } },
+  { pattern: /\b(filtrar|mostrar)\s+(em revisão|revisão|review)\b/i,  action: () => { const el=document.querySelector('[data-s="review"]'); if(el) App.setSt(el,'review'); } },
+];
+
+let voiceRecognition = null;
+let voiceActive = false;
+let voiceTimeout = null;
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    toast("Seu navegador não suporta comandos por voz");
+    return null;
+  }
+  const rec = new SpeechRecognition();
+  rec.lang = 'pt-BR';
+  rec.continuous = false;
+  rec.interimResults = false;
+  rec.maxAlternatives = 3;
+
+  rec.onresult = (e) => {
+    const transcripts = Array.from(e.results[0]).map(r => r.transcript.trim());
+    const text = transcripts[0];
+    console.log('[Jarvis Voice]', transcripts);
+    processVoiceCommand(text);
+  };
+
+  rec.onerror = (e) => {
+    if (e.error === 'no-speech') { setVoiceState('idle'); return; }
+    console.warn('[Voice error]', e.error);
+    toast("Erro no reconhecimento de voz: " + e.error);
+    setVoiceState('idle');
+  };
+
+  rec.onend = () => {
+    setVoiceState('idle');
+  };
+
+  return rec;
+}
+
+function processVoiceCommand(text) {
+  if (!text) return;
+  for (const cmd of VOICE_COMMANDS) {
+    const match = text.match(cmd.pattern);
+    if (match) {
+      cmd.action(match);
+      toast(`🎙️ "${text}"`);
+      return;
+    }
+  }
+  // Fallback: search by voice input
+  const s = document.getElementById('search');
+  if (s) { s.value = text; App.render(); toast(`🔍 Buscando: "${text}"`); }
+}
+
+function setVoiceState(state) {
+  voiceActive = state === 'listening';
+  const btn = document.getElementById('voice-btn');
+  const mBtn = document.getElementById('voice-btn-mobile');
+  [btn, mBtn].forEach(b => {
+    if (!b) return;
+    b.classList.toggle('voice-listening', voiceActive);
+    b.title = voiceActive ? 'Ouvindo... (clique para parar)' : 'Comando por voz (V)';
+  });
+}
+
+function toggleVoice() {
+  if (!voiceRecognition) voiceRecognition = initVoice();
+  if (!voiceRecognition) return;
+  if (voiceActive) {
+    voiceRecognition.stop();
+    setVoiceState('idle');
+    return;
+  }
+  try {
+    voiceRecognition.start();
+    setVoiceState('listening');
+    // Auto-stop after 8s
+    clearTimeout(voiceTimeout);
+    voiceTimeout = setTimeout(() => {
+      if (voiceActive) { voiceRecognition.stop(); setVoiceState('idle'); }
+    }, 8000);
+  } catch(e) {
+    console.warn('[Voice start error]', e);
+    // If already started, stop and retry
+    voiceRecognition.stop();
+    setVoiceState('idle');
+  }
+}
+
+// Keyboard shortcut: V
+const _origKeydown = document.onkeydown;
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName.toLowerCase();
+  const typing = ['input','textarea','select'].includes(tag);
+  if (!typing && (e.key === 'v' || e.key === 'V')) {
+    e.preventDefault();
+    toggleVoice();
+  }
+});
+
+window.App.toggleVoice = toggleVoice;    
