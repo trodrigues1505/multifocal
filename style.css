@@ -695,3 +695,17 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-wi
   .tab-bar { display: flex !important; }
   .mobile-nav-panel { display: block !important; }
 }
+
+/* ── Voice Button ─────────────────────────────────────── */
+.icon-btn.voice-listening,
+.tab-item.voice-listening {
+  color: var(--red) !important;
+  animation: voice-pulse 1s ease-in-out infinite;
+}
+.icon-btn.voice-listening {
+  background: var(--red-bg) !important;
+}
+@keyframes voice-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .7; transform: scale(1.15); }
+}   
