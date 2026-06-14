@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multifocal — Gerenciador de Tarefas</title>
-<meta name="description" content="Gerencie suas tarefas com foco e clareza. Sincronizado em qualquer dispositivo.">
+<title>Jarvis — Gerenciador de Tarefas</title>
+<meta name="description" content="Gerencie suas tarefas com inteligência e foco. Sincronizado em qualquer dispositivo.">
 <meta name="theme-color" content="#F8F8F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#13141F" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Multifocal">
+<meta name="apple-mobile-web-app-title" content="Jarvis">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
@@ -56,7 +56,7 @@
     <i class="ti ti-shield-lock" style="font-size:20px;color:var(--blue);flex-shrink:0"></i>
     <div class="lgpd-text">
       <strong>Privacidade e dados</strong>
-      <span>Usamos sua conta Google apenas para autenticação e armazenar suas tarefas de forma segura no Firebase. Não compartilhamos seus dados com terceiros. Em conformidade com a <strong>LGPD (Lei 13.709/2018)</strong>. <a href="#" onclick="App.openPrivacy();return false">Política de privacidade</a></span>
+      <span>O Jarvis usa sua conta Google apenas para autenticação e armazenar suas tarefas de forma segura no Firebase. Não compartilhamos seus dados com terceiros. Em conformidade com a <strong>LGPD (Lei 13.709/2018)</strong>. <a href="#" onclick="App.openPrivacy();return false">Política de privacidade</a></span>
     </div>
     <button class="lgpd-accept" onclick="App.acceptLgpd()">Entendi e aceito</button>
     <button class="lgpd-close" onclick="App.acceptLgpd()" title="Fechar"><i class="ti ti-x"></i></button>
@@ -84,8 +84,8 @@
 <!-- LOGIN SCREEN -->
 <div id="screen-login" class="screen-login hidden">
   <div class="login-card">
-    <img src="logo.png" alt="Multifocal" class="login-logo-img">
-    <p class="login-tagline">Organize o que importa.<br>Foco em cada tarefa.</p>
+    <img src="logo.png" alt="Jarvis" class="login-logo-img">
+    <p class="login-tagline">Seu assistente de tarefas.<br>Inteligente e focado.</p>
     <button class="btn-google" onclick="App.signIn()">
       <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.3C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.6 5C9.7 39.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.6 5.7l6.2 5.3C40.5 35.7 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
       Entrar com Google
@@ -100,11 +100,14 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sb-brand">
-      <img src="logo.png" alt="Multifocal" class="sb-logo">
+      <img src="logo.png" alt="Jarvis" class="sb-logo">
       <div class="sb-brand-actions">
         <div class="sync-indicator" id="sync-indicator" title="Sincronizado">
           <i class="ti ti-cloud-check"></i>
         </div>
+        <button class="icon-btn" id="voice-btn" onclick="App.toggleVoice()" title="Comando por voz (V)">
+          <i class="ti ti-microphone"></i>
+        </button>
         <button class="icon-btn" onclick="App.openDashboard()" title="Dashboard" id="btn-dashboard">
           <i class="ti ti-chart-bar"></i>
         </button>
@@ -201,7 +204,7 @@
   <!-- MOBILE NAV PANEL -->
   <div class="mobile-nav-panel" id="mobile-nav-panel">
     <div class="mobile-nav-header">
-      <img src="logo.png" alt="Multifocal">
+      <img src="logo.png" alt="Jarvis">
       <button class="icon-btn" onclick="App.closeMobileNav()"><i class="ti ti-x"></i></button>
     </div>
     <div class="user-row" id="mobile-user-row"></div>
@@ -259,6 +262,10 @@
     <button class="tab-item" id="tab-search" onclick="App.focusSearch()" title="Buscar">
       <i class="ti ti-search"></i>
       <span>Buscar</span>
+    </button>
+    <button class="tab-item" id="voice-btn-mobile" onclick="App.toggleVoice()" title="Comando por voz">
+      <i class="ti ti-microphone"></i>
+      <span>Voz</span>
     </button>
   </nav>
 
@@ -354,6 +361,7 @@
         <div class="shortcut-row"><kbd>/</kbd><span>Focar na busca</span></div>
         <div class="shortcut-row"><kbd>Esc</kbd><span>Fechar modal / painel</span></div>
         <div class="shortcut-row"><kbd>?</kbd><span>Mostrar atalhos</span></div>
+        <div class="shortcut-row"><kbd>V</kbd><span>Ativar comando por voz</span></div>
       </div>
     </div>
   </div>
@@ -363,12 +371,12 @@
 <div class="modal-overlay hidden" id="install-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
-      <h2>Instalar Multifocal</h2>
+      <h2>Instalar Jarvis</h2>
       <button class="icon-btn" onclick="document.getElementById('install-overlay').classList.add('hidden')"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body" style="gap:16px">
       <div class="install-platform" id="install-native" style="display:none">
-        <p style="font-size:13px;color:var(--text2)">Instale o Multifocal no seu dispositivo para acessar rapidamente, mesmo offline.</p>
+        <p style="font-size:13px;color:var(--text2)">Instale o Jarvis no seu dispositivo para acessar rapidamente, mesmo offline.</p>
         <button class="btn-save" style="width:100%;justify-content:center;display:flex;gap:8px;margin-top:4px" onclick="App.triggerInstall()">
           <i class="ti ti-download"></i> Instalar agora
         </button>
@@ -415,11 +423,11 @@ if ('serviceWorker' in navigator) {
         !reg.active.scriptURL.includes('sw.js');
       // Always re-register to pick up new version
     }
-    navigator.serviceWorker.register('./sw.js?v=5').catch(e => console.warn('SW:', e));
+    navigator.serviceWorker.register('./sw.js?v=6').catch(e => console.warn('SW:', e));
   });
 }
 </script>
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="app.js"></script>
 </body>
-</html>
+</html>   
