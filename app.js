@@ -65,7 +65,7 @@ window.addEventListener("beforeinstallprompt", e => {
 });
 window.addEventListener("appinstalled", () => {
   deferredInstallPrompt = null;
-  toast("Jarvis instalado com sucesso!");
+  toast("App instalado com sucesso!");
 });
 
 function installPWA() {
@@ -241,9 +241,14 @@ function updateStats() {
 
 function renderCats() {
   $("cat-nav").innerHTML = state.cats.map(c => `
-    <div class="nav-item${view==="cat:"+c.id?" active":""}" onclick="App.setView(this,'cat:${c.id}')">
-      <span class="cat-dot" style="background:${c.color}"></span>${esc(c.label)}
+    <div class="nav-item cat-nav-item${view==="cat:"+c.id?" active":""}" onclick="App.setView(this,'cat:${c.id}')">
+      <span class="cat-dot" style="background:${c.color}"></span>
+      <span style="flex:1">${esc(c.label)}</span>
       <span class="nav-badge">${state.tasks.filter(t=>t.cat===c.id&&t.status!=="done").length}</span>
+      <span class="cat-actions">
+        <button class="cat-action-btn" onclick="event.stopPropagation();App.openCatModal('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
+        <button class="cat-action-btn danger" onclick="event.stopPropagation();App.confirmDeleteCat('${c.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
+      </span>
     </div>`).join("");
 }
 
@@ -506,11 +511,84 @@ function setView(el,v) { view=v; document.querySelectorAll(".nav-item").forEach(
 function setSt(el,s)   { sf=s;   document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));     el.classList.add("active"); render(); }
 
 // ── Categories ────────────────────────────────────────────────────────────────
-function openNewCat() {
-  const name=prompt("Nome da categoria:"); if(!name?.trim()) return;
-  const colors=["#3B82F6","#4CAF8A","#7C5CBF","#F59500","#E53935","#0EA5E9","#D946EF"];
-  state.cats.push({id:"c"+now(),label:name.trim(),color:colors[state.cats.length%colors.length]});
-  persist(); render(); toast("Categoria criada");
+// ── Category management ──────────────────────────────────────────────────────
+const CAT_COLORS = ["#3B82F6","#4CAF8A","#7C5CBF","#F59500","#E53935","#0EA5E9","#D946EF","#EC4899","#14B8A6","#F97316"];
+
+function openNewCat() { openCatModal(null); }
+
+function openCatModal(catId) {
+  const cat = catId ? state.cats.find(c=>c.id===catId) : null;
+  const color = cat ? cat.color : CAT_COLORS[state.cats.length % CAT_COLORS.length];
+  $("cat-modal-title").textContent = cat ? "Editar categoria" : "Nova categoria";
+  $("cat-modal-id").value = catId || "";
+  $("cat-name-input").value = cat ? cat.label : "";
+  $("cat-color-input").value = color;
+  $("cat-modal-overlay").classList.remove("hidden");
+  setTimeout(() => $("cat-name-input").focus(), 60);
+}
+
+function saveCat() {
+  const name = $("cat-name-input").value.trim();
+  if (!name) { $("cat-name-input").focus(); return; }
+  const color = $("cat-color-input").value;
+  const existingId = $("cat-modal-id").value;
+  if (existingId) {
+    const cat = state.cats.find(c=>c.id===existingId);
+    if (cat) { cat.label = name; cat.color = color; }
+    toast("Categoria atualizada");
+  } else {
+    state.cats.push({ id:"c"+now(), label:name, color });
+    toast("Categoria criada");
+  }
+  $("cat-modal-overlay").classList.add("hidden");
+  persist(); render();
+}
+
+function closeCatModal() { $("cat-modal-overlay").classList.add("hidden"); }
+
+function confirmDeleteCat(catId) {
+  const cat = state.cats.find(c=>c.id===catId);
+  if (!cat) return;
+  const taskCount = state.tasks.filter(t=>t.cat===catId).length;
+  $("del-cat-name").textContent = cat.label;
+  $("del-cat-id").value = catId;
+  // Build move options (other cats)
+  const others = state.cats.filter(c=>c.id!==catId);
+  const moveSelect = $("del-cat-move-select");
+  moveSelect.innerHTML = others.map(c=>`<option value="${c.id}">${esc(c.label)}</option>`).join("");
+  const taskSection = $("del-cat-task-section");
+  taskSection.style.display = taskCount > 0 ? "block" : "none";
+  $("del-cat-task-count").textContent = taskCount;
+  $("del-cat-action").value = others.length > 0 ? "move" : "delete";
+  updateDelCatUI();
+  $("del-cat-overlay").classList.remove("hidden");
+}
+
+function updateDelCatUI() {
+  const action = $("del-cat-action").value;
+  $("del-cat-move-row").style.display = action === "move" ? "flex" : "none";
+}
+
+function executeDeleteCat() {
+  const catId = $("del-cat-id").value;
+  const action = $("del-cat-action").value;
+  const taskCount = state.tasks.filter(t=>t.cat===catId).length;
+  if (taskCount > 0) {
+    if (action === "move") {
+      const targetId = $("del-cat-move-select").value;
+      state.tasks.forEach(t=>{ if(t.cat===catId) t.cat=targetId; });
+      toast("Tarefas movidas e categoria excluída");
+    } else {
+      state.tasks = state.tasks.filter(t=>t.cat!==catId);
+      toast("Categoria e tarefas excluídas");
+    }
+  } else {
+    toast("Categoria excluída");
+  }
+  state.cats = state.cats.filter(c=>c.id!==catId);
+  if (view === "cat:"+catId) { view="all"; }
+  $("del-cat-overlay").classList.add("hidden");
+  persist(); render();
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -618,7 +696,8 @@ window.App = {
   addDep, removeDep,
   upd, updNote, updTags,
   delTask,
-  openNewCat,
+  openNewCat, openCatModal, saveCat, closeCatModal,
+  confirmDeleteCat, updateDelCatUI, executeDeleteCat,
   openDashboard, closeDashboard,
   exportJSON, triggerImport, importJSON,
   installPWA, triggerInstall,
@@ -628,7 +707,458 @@ window.App = {
   render
 };
 
-// ── Mobile nav ────────────────────────────────────────────────────────────────
+// [mobile nav block moved to voice system section below]
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── JARVIS VOICE SYSTEM ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Text-to-Speech (Jarvis fala) ──────────────────────────────────────────────
+function speak(text, onEnd) {
+  if (!window.speechSynthesis) { onEnd && onEnd(); return; }
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'pt-BR';
+  utt.rate = 1.05;
+  utt.pitch = 1;
+  // Prefer a PT-BR voice if available
+  const voices = window.speechSynthesis.getVoices();
+  const ptVoice = voices.find(v => v.lang.startsWith('pt')) || null;
+  if (ptVoice) utt.voice = ptVoice;
+  if (onEnd) utt.onend = onEnd;
+  window.speechSynthesis.speak(utt);
+}
+
+// ── Voice state machine ────────────────────────────────────────────────────────
+// States: idle | listening | processing | task_creation
+let voiceState   = 'idle';
+let voiceRec     = null;
+let voiceTimeout = null;
+
+// Task creation flow state
+let taskFlow = {
+  active: false,
+  mode: null,   // 'step' | 'oneshot'
+  step: 0,
+  data: {}
+};
+
+const TASK_STEPS = [
+  { field: 'title',      question: 'Qual é o título da tarefa?' },
+  { field: 'priority',   question: 'Qual a prioridade? Urgente, alta, média ou baixa?' },
+  { field: 'due',        question: 'Qual o prazo? Diga: hoje, amanhã, nome do dia, ou pule.' },
+  { field: 'cat',        question: 'Qual categoria? ' + (() => state.cats.map(c=>c.label).join(', '))() || 'Diga o nome da categoria ou pule.' },
+  { field: 'status',     question: 'Qual o status? A fazer, em andamento, revisão ou bloqueada.' },
+];
+
+// ── Init recognition ──────────────────────────────────────────────────────────
+function initVoiceRec() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const rec = new SR();
+  rec.lang = 'pt-BR';
+  rec.continuous = false;
+  rec.interimResults = false;
+  rec.maxAlternatives = 5;
+
+  rec.onresult = e => {
+    const transcripts = Array.from(e.results[0]).map(r => r.transcript.trim().toLowerCase());
+    const text = transcripts[0];
+    console.log('[Jarvis] ouviu:', transcripts);
+    setVoiceUI('processing');
+    handleVoiceInput(text, transcripts);
+  };
+
+  rec.onerror = e => {
+    if (e.error === 'no-speech') { setVoiceUI('idle'); return; }
+    if (e.error === 'not-allowed') {
+      speak('Permissão de microfone negada. Habilite nas configurações do navegador.');
+      setVoiceUI('idle'); return;
+    }
+    console.warn('[Voice]', e.error);
+    setVoiceUI('idle');
+  };
+
+  rec.onend = () => {
+    // If still in task flow, keep listening for next step (after TTS)
+    if (voiceState !== 'task_creation') setVoiceUI('idle');
+  };
+
+  return rec;
+}
+
+// ── Start / stop listening ────────────────────────────────────────────────────
+function startListening(afterSpeak) {
+  if (!voiceRec) voiceRec = initVoiceRec();
+  if (!voiceRec) {
+    toast('Reconhecimento de voz não suportado neste navegador');
+    return;
+  }
+  const go = () => {
+    try {
+      voiceRec.abort();
+    } catch(_) {}
+    setTimeout(() => {
+      try {
+        voiceRec.start();
+        setVoiceUI('listening');
+        clearTimeout(voiceTimeout);
+        voiceTimeout = setTimeout(() => stopListening(), 10000);
+      } catch(e) {
+        console.warn('[Voice start]', e);
+        setVoiceUI('idle');
+      }
+    }, 150);
+  };
+  afterSpeak ? speak(afterSpeak, go) : go();
+}
+
+function stopListening() {
+  clearTimeout(voiceTimeout);
+  try { voiceRec && voiceRec.abort(); } catch(_) {}
+  taskFlow = { active:false, mode:null, step:0, data:{} };
+  voiceState = 'idle';
+  setVoiceUI('idle');
+}
+
+// ── Main toggle (button / shortcut V) ────────────────────────────────────────
+function toggleVoice() {
+  if (voiceState !== 'idle') { stopListening(); return; }
+  voiceState = 'listening';
+  startListening('Olá! O que posso fazer por você?');
+}
+
+// ── Process any voice input ───────────────────────────────────────────────────
+function handleVoiceInput(text, alts) {
+  if (taskFlow.active) {
+    handleTaskFlowInput(text, alts);
+    return;
+  }
+  routeCommand(text, alts);
+}
+
+// ── Command router ────────────────────────────────────────────────────────────
+function routeCommand(text, alts) {
+  // ── Task creation triggers ──
+  if (/\b(criar|nova|adicionar|registrar)\s+tarefa\b/i.test(text)) {
+    // Check if user sent everything at once: "criar tarefa reunião amanhã urgente"
+    const rest = text.replace(/\b(criar|nova|adicionar|registrar)\s+tarefa\b/i,'').trim();
+    if (rest.length > 3) {
+      startOneShotTask(rest);
+    } else {
+      startStepTask();
+    }
+    return;
+  }
+
+  // ── Navigation ──
+  const navMap = [
+    { re: /\b(todas|tudo|geral)\b/i,             v:'all' },
+    { re: /\b(hoje)\b/i,                          v:'today' },
+    { re: /\b(semana|essa semana)\b/i,             v:'week' },
+    { re: /\b(em andamento|andamento|fazendo)\b/i, v:'doing' },
+    { re: /\b(urgente|urgentes)\b/i,               v:'urgent' },
+    { re: /\b(bloqueada|bloqueadas)\b/i,           v:'blocked' },
+    { re: /\b(atrasad[ao]|atrasadas)\b/i,          v:'overdue' },
+    { re: /\b(recorrente|recorrentes)\b/i,         v:'recurring' },
+  ];
+  for (const {re,v} of navMap) {
+    if (re.test(text)) {
+      const el = document.querySelector(`[data-v="${v}"]`);
+      if (el) { App.setView(el,v); speak(`Mostrando ${v==='all'?'todas as tarefas':text}`); return; }
+    }
+  }
+
+  // ── Category nav ──
+  for (const cat of state.cats) {
+    if (text.includes(cat.label.toLowerCase())) {
+      const el = document.querySelector(`[data-v="cat:${cat.id}"]`) || { classList:{add:()=>{},remove:()=>{},toggle:()=>{}}, dataset:{} };
+      App.setView(el, 'cat:'+cat.id);
+      speak(`Mostrando categoria ${cat.label}`);
+      return;
+    }
+  }
+
+  // ── Search ──
+  if (/\b(buscar|pesquisar|procurar|achar|encontrar)\b/i.test(text)) {
+    const q = text.replace(/\b(buscar|pesquisar|procurar|achar|encontrar)\b/i,'').trim();
+    if (q) { const s=$('search'); s.value=q; App.render(); speak(`Buscando ${q}`); return; }
+  }
+  if (/\b(limpar busca|limpar pesquisa|limpar filtro)\b/i.test(text)) {
+    const s=$('search'); s.value=''; App.render(); speak('Busca limpa'); return;
+  }
+
+  // ── Dashboard ──
+  if (/\b(dashboard|painel|gráfico|estatísticas|relatório)\b/i.test(text)) {
+    App.openDashboard(); speak('Abrindo dashboard'); return;
+  }
+
+  // ── Shortcuts / help ──
+  if (/\b(ajuda|atalhos|help)\b/i.test(text)) {
+    App.openShortcuts(); speak('Abrindo atalhos'); return;
+  }
+
+  // ── Export ──
+  if (/\b(exportar|backup|salvar arquivo)\b/i.test(text)) {
+    App.exportJSON(); speak('Exportando dados'); return;
+  }
+
+  // ── Close / cancel ──
+  if (/\b(fechar|voltar|cancelar|sair)\b/i.test(text)) {
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    speak('Fechando'); return;
+  }
+
+  // ── Fallback: search ──
+  const s=$('search'); s.value=text; App.render();
+  speak(`Buscando por ${text}`);
+  setVoiceUI('idle');
+}
+
+// ── Step-by-step task creation ────────────────────────────────────────────────
+function startStepTask() {
+  taskFlow = { active:true, mode:'step', step:0, data:{} };
+  voiceState = 'task_creation';
+  const q = buildStepQuestion(0);
+  startListening(q);
+}
+
+function buildStepQuestion(stepIdx) {
+  if (stepIdx === 3) {
+    // Dynamic category question with current cats
+    return 'Qual categoria? ' + state.cats.map(c=>c.label).join(', ') + '. Ou diga pular.';
+  }
+  return TASK_STEPS[stepIdx].question;
+}
+
+function handleTaskFlowInput(text, alts) {
+  if (taskFlow.mode === 'step') {
+    handleStepInput(text);
+  } else {
+    handleOneShotConfirm(text);
+  }
+}
+
+function handleStepInput(text) {
+  const skip = /\b(pular|próxima|skip|não sei|tanto faz)\b/i.test(text);
+  const step = TASK_STEPS[taskFlow.step];
+
+  if (!skip) {
+    taskFlow.data[step.field] = parseFieldValue(step.field, text);
+  }
+
+  taskFlow.step++;
+
+  if (taskFlow.step >= TASK_STEPS.length) {
+    finishTaskCreation();
+    return;
+  }
+
+  const nextQ = buildStepQuestion(taskFlow.step);
+  startListening(nextQ);
+}
+
+// ── One-shot task creation ────────────────────────────────────────────────────
+function startOneShotTask(text) {
+  taskFlow = { active:true, mode:'oneshot', step:0, data:{} };
+  voiceState = 'task_creation';
+  const parsed = parseOneShotTask(text);
+  taskFlow.data = parsed;
+
+  const summary = buildTaskSummary(parsed);
+  speak(`Entendi: ${summary}. Confirma? Diga sim ou não.`, () => {
+    startListening(null);
+  });
+}
+
+function handleOneShotConfirm(text) {
+  if (/\b(sim|confirmar|confirma|ok|pode|isso|salvar)\b/i.test(text)) {
+    finishTaskCreation();
+  } else if (/\b(não|nao|cancela|cancelar|errado)\b/i.test(text)) {
+    taskFlow = { active:false, mode:null, step:0, data:{} };
+    voiceState = 'idle';
+    setVoiceUI('idle');
+    speak('Tarefa cancelada. O que mais posso fazer?');
+  } else {
+    speak('Não entendi. Diga sim para confirmar ou não para cancelar.', () => startListening(null));
+  }
+}
+
+function finishTaskCreation() {
+  const d = taskFlow.data;
+  if (!d.title) {
+    speak('Título não informado. Tarefa cancelada.');
+    taskFlow = { active:false, mode:null, step:0, data:{} };
+    voiceState = 'idle'; setVoiceUI('idle'); return;
+  }
+  const defaultCat = state.cats[0]?.id || 'personal';
+  state.tasks.push({
+    id: state.nextId++,
+    title: d.title,
+    desc: d.desc || '',
+    status: d.status || 'todo',
+    priority: d.priority || 'medium',
+    due: d.due || '',
+    cat: d.cat || defaultCat,
+    deps: [], subs: [], comments: [],
+    tags: d.tags || [],
+    recurrence: '',
+    timeEst: 0,
+    note: '',
+    created: now()
+  });
+  persist();
+  taskFlow = { active:false, mode:null, step:0, data:{} };
+  voiceState = 'idle'; setVoiceUI('idle');
+  renderFull();
+  speak(`Tarefa "${d.title}" criada com sucesso!`);
+  toast(`✓ Tarefa criada: ${d.title}`);
+}
+
+// ── Parsers ───────────────────────────────────────────────────────────────────
+function parseFieldValue(field, text) {
+  switch(field) {
+    case 'priority': return parsePriority(text);
+    case 'due':      return parseDue(text);
+    case 'cat':      return parseCat(text);
+    case 'status':   return parseStatus(text);
+    default:         return text;
+  }
+}
+
+function parsePriority(text) {
+  if (/urgente/i.test(text))          return 'urgent';
+  if (/\balta\b/i.test(text))         return 'high';
+  if (/\bbaixa\b/i.test(text))        return 'low';
+  return 'medium';
+}
+
+function parseDue(text) {
+  const td = today();
+  if (/\bhoje\b/i.test(text))         return td;
+  if (/\bamanh[aã]\b/i.test(text))    return addDays(td,1);
+  if (/\bsegunda/i.test(text))        return nextWeekday(1);
+  if (/\bter[cç]a/i.test(text))       return nextWeekday(2);
+  if (/\bquarta/i.test(text))         return nextWeekday(3);
+  if (/\bquinta/i.test(text))         return nextWeekday(4);
+  if (/\bsexta/i.test(text))          return nextWeekday(5);
+  if (/\bsábado/i.test(text))         return nextWeekday(6);
+  if (/\bdomingo/i.test(text))        return nextWeekday(0);
+  if (/\b(\d{1,2})\/(\d{1,2})\b/.test(text)) {
+    const [,d,m] = text.match(/\b(\d{1,2})\/(\d{1,2})\b/);
+    const y = new Date().getFullYear();
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+  return '';
+}
+
+function nextWeekday(target) {
+  const dt = new Date();
+  const diff = (target - dt.getDay() + 7) % 7 || 7;
+  return addDays(today(), diff);
+}
+
+function parseCat(text) {
+  const found = state.cats.find(c => text.toLowerCase().includes(c.label.toLowerCase()));
+  return found ? found.id : (state.cats[0]?.id || '');
+}
+
+function parseStatus(text) {
+  if (/\bem andamento|andamento|fazendo/i.test(text)) return 'doing';
+  if (/\brevis[aã]o/i.test(text))                    return 'review';
+  if (/\bbloqueada/i.test(text))                      return 'blocked';
+  if (/\bconclu[ií]/i.test(text))                     return 'done';
+  return 'todo';
+}
+
+function parseOneShotTask(text) {
+  const data = {};
+  // Title: everything before priority/date/cat keywords
+  let title = text;
+
+  // Extract priority
+  const prioMatch = text.match(/\b(urgente|prioridade alta|alta|baixa|média|media)\b/i);
+  if (prioMatch) {
+    data.priority = parsePriority(prioMatch[0]);
+    title = title.replace(prioMatch[0],'').trim();
+  }
+
+  // Extract due
+  const dueKeywords = /(hoje|amanh[aã]|segunda|ter[cç]a|quarta|quinta|sexta|sábado|domingo|\d{1,2}\/\d{1,2})/i;
+  const dueMatch = text.match(dueKeywords);
+  if (dueMatch) {
+    data.due = parseDue(dueMatch[0]);
+    title = title.replace(dueMatch[0],'').trim();
+  }
+
+  // Extract category
+  for (const cat of state.cats) {
+    if (text.toLowerCase().includes(cat.label.toLowerCase())) {
+      data.cat = cat.id;
+      title = title.replace(new RegExp(cat.label,'i'),'').trim();
+      break;
+    }
+  }
+
+  // Extract status
+  const statusMatch = text.match(/\b(em andamento|andamento|revisão|revisao|bloqueada)\b/i);
+  if (statusMatch) {
+    data.status = parseStatus(statusMatch[0]);
+    title = title.replace(statusMatch[0],'').trim();
+  }
+
+  // Clean up title
+  title = title.replace(/\s+/g,' ').replace(/^\s+|\s+$/g,'').trim();
+  data.title = title.charAt(0).toUpperCase() + title.slice(1);
+
+  return data;
+}
+
+function buildTaskSummary(d) {
+  const prio  = PRIO_LABEL[d.priority||'medium'];
+  const due   = d.due ? `prazo ${fmtDate(d.due)}` : 'sem prazo';
+  const cat   = d.cat ? getCat(d.cat).label : 'categoria padrão';
+  return `${d.title}, prioridade ${prio}, ${due}, categoria ${cat}`;
+}
+
+// ── UI state ──────────────────────────────────────────────────────────────────
+function setVoiceUI(state) {
+  voiceState = state;
+  const listening = state === 'listening';
+  const processing = state === 'processing';
+  document.querySelectorAll('.voice-btn').forEach(btn => {
+    btn.classList.toggle('voice-listening', listening);
+    btn.classList.toggle('voice-processing', processing);
+    const icon = btn.querySelector('i');
+    if (icon) {
+      icon.className = processing ? 'ti ti-loader' : 'ti ti-microphone';
+    }
+    btn.title = listening ? 'Ouvindo... (clique para parar)' :
+                processing ? 'Processando...' : 'Comando por voz (V)';
+  });
+  // Show/hide voice indicator overlay
+  const ind = document.getElementById('voice-indicator');
+  if (ind) {
+    ind.className = 'voice-indicator' + (listening?' listening':processing?' processing':'');
+    ind.style.display = (listening||processing) ? 'flex' : 'none';
+    ind.querySelector('.vi-text').textContent =
+      processing ? 'Processando...' :
+      taskFlow.active && taskFlow.mode==='step' ? `Passo ${taskFlow.step+1} de ${TASK_STEPS.length}` :
+      'Ouvindo...';
+  }
+}
+
+// ── Keyboard shortcut V ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName.toLowerCase();
+  const typing = ['input','textarea','select'].includes(tag);
+  if (!typing && (e.key==='v'||e.key==='V')) { e.preventDefault(); toggleVoice(); }
+});
+
+// ── Expose voice functions ────────────────────────────────────────────────────
+Object.assign(window.App, { toggleVoice, stopListening });
+
+// ── Mobile nav & patches ──────────────────────────────────────────────────────
 function openMobileNav() {
   $("mobile-nav-panel").classList.add("open");
   $("mobile-nav-backdrop").classList.add("visible");
@@ -641,14 +1171,12 @@ function closeMobileNav() {
 }
 function setViewMobile(el, v) {
   setView(el, v);
-  // also update desktop nav active state
   document.querySelectorAll(".sb-nav .nav-item").forEach(x => {
     x.classList.toggle("active", x.dataset.v === v);
   });
   closeMobileNav();
 }
 function tabTasks() {
-  // deselect detail, go back to list
   selId = null;
   $("detail-panel").classList.add("hidden");
   $("sheet-backdrop").classList.remove("visible");
@@ -665,7 +1193,6 @@ function closeDetail() {
   render();
 }
 
-// Patch selTask to show backdrop on mobile
 const _origSelTask = selTask;
 window._patchedSelTask = function(id) {
   _origSelTask(id);
@@ -676,28 +1203,23 @@ window._patchedSelTask = function(id) {
   }
 };
 
-// Patch updateStats to also update mobile nav badges + mobile user row
 const _origUpdateStats = updateStats;
 function updateStatsFull() {
   _origUpdateStats();
-  // Mirror to mobile nav
   const ids = ["all","today","week","doing","urgent","blocked","overdue","recurring"];
   ids.forEach(id => {
     const desktop = $("b-"+id);
     const mobile  = $("mb-"+id);
     if (desktop && mobile) mobile.textContent = desktop.textContent;
   });
-  // Mobile stats pills
-  const ms = ["stat-total","stat-doing","stat-overdue"].map(id => {
+  ["stat-total","stat-doing","stat-overdue"].forEach(id => {
     const d = $(id); const m = $("m-"+id);
     if (d && m) m.textContent = d.textContent;
   });
-  // Mobile progress
   const mpb = $("m-prog-bar"), mpl = $("m-prog-label");
   const dpb = $("prog-bar"),   dpl = $("prog-label");
   if (mpb && dpb) mpb.style.width = dpb.style.width;
   if (mpl && dpl) mpl.textContent = dpl.textContent;
-  // Tab badge for overdue
   const ob = $("b-overdue");
   const tb = $("tab-badge-overdue");
   if (ob && tb) {
@@ -705,29 +1227,30 @@ function updateStatsFull() {
     tb.textContent = n > 9 ? "9+" : n;
     tb.style.display = n > 0 ? "flex" : "none";
   }
-  // Mobile cat nav
   const mcn = $("mobile-cat-nav");
   if (mcn) {
     mcn.innerHTML = state.cats.map(c => `
-      <div class="nav-item${view==="cat:"+c.id?" active":""}" onclick="App.setViewMobile(this,'cat:${c.id}')">
-        <span class="cat-dot" style="background:${c.color}"></span>${esc(c.label)}
+      <div class="nav-item cat-nav-item${view==="cat:"+c.id?" active":""}" onclick="App.setViewMobile(this,'cat:${c.id}')">
+        <span class="cat-dot" style="background:${c.color}"></span>
+        <span style="flex:1">${esc(c.label)}</span>
         <span class="nav-badge">${state.tasks.filter(t=>t.cat===c.id&&t.status!=="done").length}</span>
+        <span class="cat-actions">
+          <button class="cat-action-btn" onclick="event.stopPropagation();App.openCatModal('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
+          <button class="cat-action-btn danger" onclick="event.stopPropagation();App.confirmDeleteCat('${c.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
+        </span>
       </div>`).join("");
   }
-  // Mirror user row to mobile
   const mur = $("mobile-user-row");
   const dur = $("user-row");
   if (mur && dur) mur.innerHTML = dur.innerHTML;
 }
 
-// Override render to call updateStatsFull
 const _origRender = render;
 function renderFull() {
   _origRender();
   updateStatsFull();
 }
 
-// Re-export patched versions
 Object.assign(window.App, {
   openMobileNav, closeMobileNav,
   setViewMobile, tabTasks, focusSearch, closeDetail,
@@ -735,130 +1258,4 @@ Object.assign(window.App, {
   render: renderFull
 });
 
-// Kick off with full render
-renderFull();
-
-// ── Voice Command System ──────────────────────────────────────────────────────
-const VOICE_COMMANDS = [
-  // Navegação
-  { pattern: /\b(todas|tudo|geral)\b/i,        action: () => { const el=document.querySelector('[data-v="all"]'); if(el) App.setViewMobile?App.setViewMobile(el,'all'):App.setView(el,'all'); } },
-  { pattern: /\b(hoje|dia)\b/i,                action: () => { const el=document.querySelector('[data-v="today"]'); if(el) App.setView(el,'today'); } },
-  { pattern: /\b(semana)\b/i,                  action: () => { const el=document.querySelector('[data-v="week"]'); if(el) App.setView(el,'week'); } },
-  { pattern: /\b(andamento|fazendo|ativas?)\b/i,action: () => { const el=document.querySelector('[data-v="doing"]'); if(el) App.setView(el,'doing'); } },
-  { pattern: /\b(urgente|urgentes)\b/i,         action: () => { const el=document.querySelector('[data-v="urgent"]'); if(el) App.setView(el,'urgent'); } },
-  { pattern: /\b(bloqueada|bloqueadas)\b/i,     action: () => { const el=document.querySelector('[data-v="blocked"]'); if(el) App.setView(el,'blocked'); } },
-  { pattern: /\b(atrasad[ao]|atrasadas)\b/i,    action: () => { const el=document.querySelector('[data-v="overdue"]'); if(el) App.setView(el,'overdue'); } },
-  { pattern: /\b(recorrente|recorrentes)\b/i,   action: () => { const el=document.querySelector('[data-v="recurring"]'); if(el) App.setView(el,'recurring'); } },
-  // Ações
-  { pattern: /\b(nova tarefa|criar tarefa|adicionar tarefa|nova|criar)\b/i, action: () => App.openModal() },
-  { pattern: /\b(dashboard|painel|gráfico|gráficos|estatísticas)\b/i,      action: () => App.openDashboard() },
-  { pattern: /\b(buscar|pesquisar|procurar)\s+(.+)/i,  action: (m) => { const q=m[2]; const s=document.getElementById('search'); if(s){s.value=q; App.render();} } },
-  { pattern: /\b(limpar busca|limpar pesquisa|limpar filtro)\b/i, action: () => { const s=document.getElementById('search'); if(s){s.value=''; App.render();} } },
-  { pattern: /\b(exportar|export|backup)\b/i,  action: () => App.exportJSON() },
-  { pattern: /\b(atalhos|ajuda|help)\b/i,      action: () => App.openShortcuts() },
-  { pattern: /\b(fechar|voltar|cancelar)\b/i,   action: () => { document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); } },
-  // Filtros de status
-  { pattern: /\b(filtrar|mostrar)\s+(concluídas|feitas|done)\b/i,    action: () => { const el=document.querySelector('[data-s="done"]'); if(el) App.setSt(el,'done'); } },
-  { pattern: /\b(filtrar|mostrar)\s+(a fazer|pendentes|todo)\b/i,     action: () => { const el=document.querySelector('[data-s="todo"]'); if(el) App.setSt(el,'todo'); } },
-  { pattern: /\b(filtrar|mostrar)\s+(em revisão|revisão|review)\b/i,  action: () => { const el=document.querySelector('[data-s="review"]'); if(el) App.setSt(el,'review'); } },
-];
-
-let voiceRecognition = null;
-let voiceActive = false;
-let voiceTimeout = null;
-
-function initVoice() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    toast("Seu navegador não suporta comandos por voz");
-    return null;
-  }
-  const rec = new SpeechRecognition();
-  rec.lang = 'pt-BR';
-  rec.continuous = false;
-  rec.interimResults = false;
-  rec.maxAlternatives = 3;
-
-  rec.onresult = (e) => {
-    const transcripts = Array.from(e.results[0]).map(r => r.transcript.trim());
-    const text = transcripts[0];
-    console.log('[Jarvis Voice]', transcripts);
-    processVoiceCommand(text);
-  };
-
-  rec.onerror = (e) => {
-    if (e.error === 'no-speech') { setVoiceState('idle'); return; }
-    console.warn('[Voice error]', e.error);
-    toast("Erro no reconhecimento de voz: " + e.error);
-    setVoiceState('idle');
-  };
-
-  rec.onend = () => {
-    setVoiceState('idle');
-  };
-
-  return rec;
-}
-
-function processVoiceCommand(text) {
-  if (!text) return;
-  for (const cmd of VOICE_COMMANDS) {
-    const match = text.match(cmd.pattern);
-    if (match) {
-      cmd.action(match);
-      toast(`🎙️ "${text}"`);
-      return;
-    }
-  }
-  // Fallback: search by voice input
-  const s = document.getElementById('search');
-  if (s) { s.value = text; App.render(); toast(`🔍 Buscando: "${text}"`); }
-}
-
-function setVoiceState(state) {
-  voiceActive = state === 'listening';
-  const btn = document.getElementById('voice-btn');
-  const mBtn = document.getElementById('voice-btn-mobile');
-  [btn, mBtn].forEach(b => {
-    if (!b) return;
-    b.classList.toggle('voice-listening', voiceActive);
-    b.title = voiceActive ? 'Ouvindo... (clique para parar)' : 'Comando por voz (V)';
-  });
-}
-
-function toggleVoice() {
-  if (!voiceRecognition) voiceRecognition = initVoice();
-  if (!voiceRecognition) return;
-  if (voiceActive) {
-    voiceRecognition.stop();
-    setVoiceState('idle');
-    return;
-  }
-  try {
-    voiceRecognition.start();
-    setVoiceState('listening');
-    // Auto-stop after 8s
-    clearTimeout(voiceTimeout);
-    voiceTimeout = setTimeout(() => {
-      if (voiceActive) { voiceRecognition.stop(); setVoiceState('idle'); }
-    }, 8000);
-  } catch(e) {
-    console.warn('[Voice start error]', e);
-    // If already started, stop and retry
-    voiceRecognition.stop();
-    setVoiceState('idle');
-  }
-}
-
-// Keyboard shortcut: V
-const _origKeydown = document.onkeydown;
-document.addEventListener('keydown', e => {
-  const tag = document.activeElement.tagName.toLowerCase();
-  const typing = ['input','textarea','select'].includes(tag);
-  if (!typing && (e.key === 'v' || e.key === 'V')) {
-    e.preventDefault();
-    toggleVoice();
-  }
-});
-
-window.App.toggleVoice = toggleVoice;    
+renderFull();   
