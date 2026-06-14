@@ -1,4 +1,4 @@
-const CACHE = "multifocal-v5";
+const CACHE = "jarvis-v1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -53,4 +53,4 @@ self.addEventListener("fetch", e => {
       })
       .catch(() => caches.match(e.request))
   );
-});
+});    
