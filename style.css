@@ -696,16 +696,88 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-wi
   .mobile-nav-panel { display: block !important; }
 }
 
-/* ── Voice Button ─────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   JARVIS ADDITIONS
+   ══════════════════════════════════════════════════════ */
+
+/* ── Category nav actions ────────────────────────────── */
+.cat-nav-item { position: relative; }
+.cat-actions {
+  display: none; align-items: center; gap: 2px;
+  margin-left: 4px; flex-shrink: 0;
+}
+.cat-nav-item:hover .cat-actions { display: flex; }
+.cat-action-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 5px;
+  border: none; background: transparent;
+  color: var(--text3); font-size: 12px; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.cat-action-btn:hover { background: var(--bg3); color: var(--text); }
+.cat-action-btn.danger:hover { background: var(--red-bg); color: var(--red); }
+
+/* ── Color swatches ──────────────────────────────────── */
+.color-swatch {
+  width: 20px; height: 20px; border-radius: 50%;
+  cursor: pointer; border: 2px solid transparent;
+  flex-shrink: 0; transition: transform .1s, border-color .1s;
+  display: inline-block;
+}
+.color-swatch:hover { transform: scale(1.2); border-color: var(--text3); }
+
+/* ── Voice button states ─────────────────────────────── */
 .icon-btn.voice-listening,
 .tab-item.voice-listening {
   color: var(--red) !important;
-  animation: voice-pulse 1s ease-in-out infinite;
 }
-.icon-btn.voice-listening {
-  background: var(--red-bg) !important;
-}
+.icon-btn.voice-listening { background: var(--red-bg) !important; }
+.icon-btn.voice-processing,
+.tab-item.voice-processing { color: var(--amber) !important; }
+.icon-btn.voice-processing { background: var(--amber-bg) !important; }
+
 @keyframes voice-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: .7; transform: scale(1.15); }
-}   
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.7; transform:scale(1.12); }
+}
+.voice-listening .ti-microphone { animation: voice-pulse .9s ease-in-out infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.voice-processing .ti-loader { animation: spin .7s linear infinite; }
+
+/* ── Voice indicator overlay ─────────────────────────── */
+.voice-indicator {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 40px; padding: 10px 20px 10px 14px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.15);
+  z-index: 9999; min-width: 200px; justify-content: center;
+}
+.voice-indicator.listening { border-color: var(--red); }
+.voice-indicator.processing { border-color: var(--amber); }
+.vi-ring {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--red); flex-shrink: 0;
+  animation: vi-beat .8s ease-in-out infinite;
+}
+.voice-indicator.processing .vi-ring { background: var(--amber); animation: spin .7s linear infinite; border-radius: 0; clip-path: none; }
+@keyframes vi-beat {
+  0%,100% { transform: scale(1); opacity:1; }
+  50%      { transform: scale(1.4); opacity:.6; }
+}
+.vi-text { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+.vi-stop {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2);
+  background: transparent; color: var(--text3); font-size: 12px; cursor: pointer;
+  transition: all .12s; white-space: nowrap;
+}
+.vi-stop:hover { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+
+@media (max-width: 768px) {
+  .voice-indicator { bottom: calc(62px + 12px); width: calc(100% - 32px); left: 16px; transform: none; }
+  /* Show cat actions on mobile with long press hint */
+  .cat-actions { display: flex; }
+  .cat-action-btn { width: 28px; height: 28px; font-size: 14px; }
+}    
