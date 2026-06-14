@@ -226,7 +226,7 @@ function startCmdRec() {
   }, 200);
 }
 
-function stopAll() {
+export function stopAll() {
   clearTimeout(cmdTimeout);
   ttsQueue = [];
   window.speechSynthesis?.cancel();
@@ -249,7 +249,7 @@ function onWakeWord() {
 }
 
 // ── Main toggle (button / V key) ──────────────────────────────────────────────
-function toggleVoice() {
+export function toggleVoice() {
   if (VS === 'standby') {
     // Manual activation — skip wake word
     speak('Olá! O que posso fazer por você?', startCmdRec);
@@ -624,7 +624,7 @@ function updateVoiceUI() {
 }
 
 // ── Init on load ──────────────────────────────────────────────────────────────
-function initJarvis() {
+export function initJarvis() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
     console.warn('[Jarvis] SpeechRecognition não disponível');
@@ -651,4 +651,3 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Expose ────────────────────────────────────────────────────────────────────
-Object.assign(window.App, { toggleVoice, stopAll });
